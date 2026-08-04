@@ -1,0 +1,12 @@
+# Dependencies
+node_modules/
+
+# Build Outputs
+dist/
+
+# Local env files
+.env
+
+# SQLite database
+data/
+*.db
