@@ -2,6 +2,9 @@
   "name": "meeting-rooms",
   "private": true,
   "version": "1.0.0",
+  "keywords": [
+    "tg-spec-gen-2-uk"
+  ],
   "workspaces": [
     "backend",
     "frontend"
