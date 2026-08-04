@@ -44,7 +44,8 @@ copy `backend/.env.example` to `backend/.env` and adjust:
 
 ## Seeds
 
-_TODO: filled in with the booking core (rooms, test users, demo bookings)._
+Creates 5 rooms (Aquarium, Mars, Gagarin, Orbit, Horizon), 2 test users and
+demo bookings. Idempotent — safe to re-run.
 
 ```bash
 npm run seed
@@ -52,7 +53,10 @@ npm run seed
 
 ## Test Users
 
-_TODO: credentials will be listed here (see spec requirement)._
+| Name | Email | Password |
+|---|---|---|
+| Alice | `alice@example.com` | `alice12345` |
+| Bob | `bob@example.com` | `bob12345` |
 
 ## Bonus Features Implemented
 

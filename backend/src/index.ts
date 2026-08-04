@@ -1,4 +1,5 @@
 import express from 'express';
+import './db.js'; // create tables on start
 
 const app = express();
 const PORT = Number(process.env.PORT ?? 8080);
