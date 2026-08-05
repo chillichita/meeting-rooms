@@ -75,7 +75,7 @@ export default function RoomPage() {
             ›
           </button>
           <span style={{ flex: 1 }} />
-          {tzDiffers && <span className="tz-label">Opening hours are from 9:00 a.m. to 7:00 p.m. ({OFFICE_TZ})</span>}
+          {tzDiffers && <span className="tz-label">Opening hours are from 09:00 to 19:00 ({OFFICE_TZ})</span>}
         </div>
 
         {loading ? (
