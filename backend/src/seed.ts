@@ -1,4 +1,5 @@
 import bcrypt from 'bcryptjs';
+import { fromZonedTime } from 'date-fns-tz';
 import { db } from './db.js';
 
 const ROOMS = [
@@ -15,14 +16,13 @@ const USERS = [
   { name: 'Bob', email: 'bob@example.com', password: 'bob12345' },
 ];
 
-// Kyiv is UTC+2 year-round (no DST since 2025), so Kyiv hour H == UTC hour H-2.
-// ponytail: offset baked into seeds only; real tz handling lands in MR-9 (date-fns-tz).
+// Build a Kyiv wall-clock slot as a UTC instant using the same tzdb as the
+// working-hours validation (date-fns-tz), so seeds stay consistent with the
+// office-hours checks regardless of DST rules in the local timezone data.
 function kyivSlot(dayOffset: number, hour: number, minute = 0): string {
-  const today = new Date();
-  const day = new Date(
-    Date.UTC(today.getUTCFullYear(), today.getUTCMonth(), today.getUTCDate() + dayOffset)
-  );
-  return new Date(Date.UTC(day.getUTCFullYear(), day.getUTCMonth(), day.getUTCDate(), hour - 2, minute)).toISOString();
+  const now = new Date();
+  const wall = new Date(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() + dayOffset, hour, minute);
+  return fromZonedTime(wall, 'Europe/Kyiv').toISOString();
 }
 
 const insertRoom = db.prepare(
