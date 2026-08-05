@@ -1,8 +1,18 @@
 import { db } from '../db.js';
 import { validateBookingTimes } from './bookingValidation.js';
 
-export class BookingError extends Error {}
-export class BookingConflictError extends BookingError {}
+export class BookingError extends Error {
+  status: number;
+  constructor(message: string, status = 400) {
+    super(message);
+    this.status = status;
+  }
+}
+export class BookingConflictError extends BookingError {
+  constructor(message: string) {
+    super(message, 409);
+  }
+}
 
 export interface NewBooking {
   roomId: number;
@@ -42,7 +52,7 @@ export function createBooking(userId: number, input: NewBooking) {
   }
 
   if (!roomExists.get(input.roomId)) {
-    throw new BookingError('Room not found');
+    throw new BookingError('Room not found', 404);
   }
 
   const result = insertBooking.run({
