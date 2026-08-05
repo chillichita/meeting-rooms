@@ -80,7 +80,7 @@ describe('POST /api/auth/login', () => {
       .post('/api/auth/login')
       .send({ email: 'ghost@example.com', password: 'whatever1' });
     expect(res.status).toBe(401);
-    expect(res.body.message).toBe('Invalid email or password');
+    expect(res.body.message).toBe('Incorrect email or password.');
   });
 });
 

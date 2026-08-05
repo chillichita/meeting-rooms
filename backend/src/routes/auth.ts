@@ -8,16 +8,16 @@ import { JWT_SECRET } from '../config.js';
 import { requireAuth, type AuthedRequest } from '../middleware/auth.js';
 
 const registerSchema = z.object({
-  name: z.string({ error: 'Name is required' }).trim().min(1, 'Name is required'),
+  name: z.string({ error: 'Enter your name.' }).trim().min(1, 'Enter your name.'),
   email: z
     .string({ error: 'Email is required' })
     .trim()
     .toLowerCase()
-    .email('Enter a valid email'),
+    .email('Enter a valid email address.'),
   password: z
     .string({ error: 'Password is required' })
-    .min(8, 'Password must be at least 8 characters')
-    .max(72, 'Password must be at most 72 characters'),
+    .min(8, 'Password must be 8–72 characters.')
+    .max(72, 'Password must be 8–72 characters.'),
 });
 
 const insertUser = db.prepare(
@@ -30,7 +30,7 @@ const loginSchema = z.object({
     .string({ error: 'Email is required' })
     .trim()
     .toLowerCase()
-    .email('Enter a valid email'),
+    .email('Enter a valid email address.'),
   password: z.string({ error: 'Password is required' }).min(1, 'Password is required'),
 });
 
@@ -62,7 +62,7 @@ router.post('/register', (req, res) => {
     if (err instanceof SqliteError && err.code === 'SQLITE_CONSTRAINT_UNIQUE') {
       return res
         .status(409)
-        .json({ field: 'email', message: 'Email already in use' });
+        .json({ field: 'email', message: 'An account with this email already exists.' });
     }
     throw err;
   }
@@ -88,7 +88,7 @@ router.post('/login', (req, res) => {
   if (!user || !bcrypt.compareSync(password, user.password_hash)) {
     return res
       .status(401)
-      .json({ field: 'password', message: 'Invalid email or password' });
+      .json({ field: 'password', message: 'Incorrect email or password.' });
   }
 
   const token = jwt.sign({ sub: user.id }, JWT_SECRET, { expiresIn: '7d' });
