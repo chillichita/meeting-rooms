@@ -4,6 +4,8 @@ import jwt from 'jsonwebtoken';
 import { z } from 'zod';
 import { SqliteError } from 'better-sqlite3';
 import { db } from '../db.js';
+import { JWT_SECRET } from '../config.js';
+import { requireAuth, type AuthedRequest } from '../middleware/auth.js';
 
 const registerSchema = z.object({
   name: z.string({ error: 'Name is required' }).trim().min(1, 'Name is required'),
@@ -35,8 +37,6 @@ const loginSchema = z.object({
 const selectUserByEmail = db.prepare(
   'SELECT id, name, email, password_hash FROM users WHERE email = ?'
 );
-// ponytail: dev fallback secret; real deployments must set JWT_SECRET in .env
-const JWT_SECRET = process.env.JWT_SECRET ?? 'dev-secret-change-me';
 const COOKIE_MAX_AGE = 7 * 24 * 60 * 60 * 1000; // 7 days
 
 const router = Router();
@@ -104,6 +104,10 @@ router.post('/login', (req, res) => {
 router.post('/logout', (_req, res) => {
   res.clearCookie('token');
   res.status(204).end();
+});
+
+router.get('/me', requireAuth, (req, res) => {
+  res.json((req as AuthedRequest).user);
 });
 
 export default router;
