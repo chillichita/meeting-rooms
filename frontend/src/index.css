@@ -43,3 +43,152 @@ body {
   padding: 3rem 2rem;
   color: var(--muted);
 }
+
+/* ---- Buttons (DS v2, used by auth now, modal later) ---- */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 8px 14px;
+  border-radius: 8px;
+  font: inherit;
+  font-size: 12.5px;
+  font-weight: 600;
+  border: 1px solid var(--line);
+  background: var(--surface);
+  color: var(--ink);
+  cursor: pointer;
+}
+.btn-primary {
+  background: var(--navy);
+  border-color: var(--navy);
+  color: #fff;
+}
+.btn-primary:hover:not(:disabled) {
+  background: var(--navy-hover);
+}
+.btn:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+/* ---- Auth (MR-16, wireframe v2) ---- */
+.auth-stage {
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 36px 22px;
+}
+.auth-card {
+  width: 380px;
+  max-width: 100%;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 26px 28px;
+  animation: rise-in 300ms ease-out; /* A1 */
+}
+.auth-tabs {
+  display: flex;
+  background: var(--canvas);
+  border: 1px solid var(--line);
+  border-radius: 9px;
+  padding: 3px;
+  margin-bottom: 20px;
+}
+.auth-tabs button {
+  flex: 1;
+  border: none;
+  background: transparent;
+  padding: 7px 0;
+  border-radius: 7px;
+  font: inherit;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--muted);
+  cursor: pointer;
+}
+.auth-tabs button.on {
+  background: var(--surface);
+  color: var(--ink);
+  box-shadow: 0 1px 2px rgba(16, 18, 32, 0.08);
+}
+.field {
+  margin-bottom: 14px;
+}
+.field .lbl {
+  display: block;
+  font-size: 11.5px;
+  font-weight: 600;
+  margin-bottom: 5px;
+}
+.input {
+  width: 100%;
+  height: 36px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--surface);
+  padding: 0 12px;
+  font: inherit;
+  font-size: 12.5px;
+  color: var(--ink);
+}
+.input:focus {
+  outline: none;
+  border-color: var(--navy);
+  box-shadow: 0 0 0 2px var(--navy-tint);
+}
+.err {
+  font-size: 10.5px;
+  color: #9a4813;
+  margin-top: 4px;
+  animation: fade-in 150ms ease-out; /* A3 */
+}
+.hint {
+  display: none;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 10.5px;
+  color: var(--muted);
+  margin-top: 4px;
+}
+.field:hover .hint,
+.field:focus-within .hint {
+  display: block;
+  animation: fade-in 150ms ease-out;
+}
+.form-error {
+  font-size: 11.5px;
+  color: #9a4813;
+  background: var(--amber-tint);
+  border-radius: 8px;
+  padding: 9px 11px;
+  margin-bottom: 12px;
+  animation: fade-in 150ms ease-out;
+}
+.auth-card form {
+  animation: fade-in 150ms ease-out; /* A2 — tab switch */
+}
+.auth-card .btn-primary {
+  width: 100%;
+  margin-top: 6px;
+}
+
+@keyframes rise-in {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}

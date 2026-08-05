@@ -1,8 +1,9 @@
 import { Route, Routes, useParams } from 'react-router-dom';
 import { AuthProvider } from './auth';
 import { useAuth } from './auth-context';
+import LoginPage from './LoginPage';
 
-// Temporary stubs — replaced by MR-16 (login), MR-17b (home), MR-17c (room grid), Epic 6 (/me).
+// Temporary stubs — replaced by MR-17b (home), MR-17c (room grid), Epic 6 (/me).
 function Stub({ label }: { label: string }) {
   const { user, loading } = useAuth();
   return (
@@ -15,10 +16,6 @@ function Stub({ label }: { label: string }) {
 
 function HomePage() {
   return <Stub label="Home — room picker (MR-17b)" />;
-}
-
-function LoginPage() {
-  return <Stub label="Auth — login / register (MR-16)" />;
 }
 
 function RoomPage() {
