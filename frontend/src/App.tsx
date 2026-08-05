@@ -1,11 +1,12 @@
-import { Outlet, Route, Routes, useParams } from 'react-router-dom';
+import { Outlet, Route, Routes } from 'react-router-dom';
 import { AuthProvider } from './auth';
 import { useAuth } from './auth-context';
 import LoginPage from './LoginPage';
 import HomePage from './HomePage';
 import Navbar from './Navbar';
+import RoomPage from './RoomPage';
 
-// Temporary stubs — replaced by MR-17c (room grid) and Epic 6 (/me).
+// Temporary stubs — replaced by Epic 6 (/me).
 function Stub({ label }: { label: string }) {
   const { user, loading } = useAuth();
   return (
@@ -16,11 +17,6 @@ function Stub({ label }: { label: string }) {
       </p>
     </main>
   );
-}
-
-function RoomPage() {
-  const { id } = useParams();
-  return <Stub label={`Room ${id} — WeekGrid (MR-17c)`} />;
 }
 
 function MyBookingsPage() {
