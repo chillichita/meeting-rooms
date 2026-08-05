@@ -2,11 +2,12 @@ import bcrypt from 'bcryptjs';
 import { db } from './db.js';
 
 const ROOMS = [
-  { name: 'Aquarium', floor: 2, capacity: 6 },
+  { name: 'Mercury', floor: 2, capacity: 4 },
   { name: 'Mars', floor: 3, capacity: 8 },
-  { name: 'Gagarin', floor: 1, capacity: 4 },
-  { name: 'Orbit', floor: 4, capacity: 10 },
-  { name: 'Horizon', floor: 2, capacity: 6 },
+  { name: 'Venus', floor: 1, capacity: 6 },
+  { name: 'Earth', floor: 4, capacity: 10 },
+  { name: 'Jupiter', floor: 2, capacity: 6 },
+  { name: 'Saturn', floor: 1, capacity: 12 }
 ];
 
 const USERS = [
@@ -46,11 +47,12 @@ if (!db.prepare('SELECT 1 FROM bookings LIMIT 1').get()) {
   `);
 
   const DEMO_BOOKINGS = [
-    { email: 'alice@example.com', room: 'Aquarium', title: 'Sprint planning', start: kyivSlot(1, 10), end: kyivSlot(1, 11) },
+    { email: 'alice@example.com', room: 'Mercury', title: 'Sprint planning', start: kyivSlot(1, 10), end: kyivSlot(1, 11) },
     { email: 'bob@example.com', room: 'Mars', title: '1:1 with PM', start: kyivSlot(1, 14), end: kyivSlot(1, 15, 30) },
-    { email: 'alice@example.com', room: 'Gagarin', title: 'Design review', start: kyivSlot(2, 9), end: kyivSlot(2, 10) },
-    { email: 'bob@example.com', room: 'Orbit', title: 'Architecture sync', start: kyivSlot(2, 11), end: kyivSlot(2, 12) },
-    { email: 'alice@example.com', room: 'Aquarium', title: 'Team retro', start: kyivSlot(3, 15), end: kyivSlot(3, 16) },
+    { email: 'alice@example.com', room: 'Venus', title: 'Design review', start: kyivSlot(2, 9), end: kyivSlot(2, 10) },
+    { email: 'bob@example.com', room: 'Earth', title: 'Architecture sync', start: kyivSlot(2, 11), end: kyivSlot(2, 12) },
+    { email: 'alice@example.com', room: 'Jupiter', title: 'Team retro', start: kyivSlot(3, 15), end: kyivSlot(3, 16) },
+    { email: 'bob@example.com', room: 'Saturn', title: 'Product planning', start: kyivSlot(3, 10), end: kyivSlot(3, 11) },
   ];
 
   for (const b of DEMO_BOOKINGS) {

@@ -44,8 +44,8 @@ copy `backend/.env.example` to `backend/.env` and adjust:
 
 ## Seeds
 
-Creates 5 rooms (Aquarium, Mars, Gagarin, Orbit, Horizon), 2 test users and
-demo bookings. Idempotent — safe to re-run.
+Creates 6 rooms (Mercury, Mars, Venus, Earth, Jupiter, Saturn), 2 test users
+and demo bookings. Idempotent — safe to re-run.
 
 ```bash
 npm run seed
