@@ -1,0 +1,56 @@
+import { Router } from 'express';
+import bcrypt from 'bcryptjs';
+import { z } from 'zod';
+import { SqliteError } from 'better-sqlite3';
+import { db } from '../db.js';
+
+const registerSchema = z.object({
+  name: z.string({ error: 'Name is required' }).trim().min(1, 'Name is required'),
+  email: z
+    .string({ error: 'Email is required' })
+    .trim()
+    .toLowerCase()
+    .email('Enter a valid email'),
+  password: z
+    .string({ error: 'Password is required' })
+    .min(8, 'Password must be at least 8 characters')
+    .max(72, 'Password must be at most 72 characters'),
+});
+
+const insertUser = db.prepare(
+  'INSERT INTO users (name, email, password_hash) VALUES (?, ?, ?)'
+);
+const selectUser = db.prepare('SELECT id, name, email FROM users WHERE id = ?');
+
+const router = Router();
+
+router.post('/register', (req, res) => {
+  const parsed = registerSchema.safeParse(req.body);
+  if (!parsed.success) {
+    const issue = parsed.error.issues[0];
+    return res
+      .status(400)
+      .json({ field: issue.path[0] ?? 'body', message: issue.message });
+  }
+
+  const { name, email, password } = parsed.data;
+  const passwordHash = bcrypt.hashSync(password, 10);
+
+  let userId: number | bigint;
+  try {
+    userId = insertUser.run(name, email, passwordHash).lastInsertRowid;
+  } catch (err) {
+    // UNIQUE constraint on email is the atomic guard: a race between two
+    // registrations with the same email can only lose here, never 500.
+    if (err instanceof SqliteError && err.code === 'SQLITE_CONSTRAINT_UNIQUE') {
+      return res
+        .status(409)
+        .json({ field: 'email', message: 'Email already in use' });
+    }
+    throw err;
+  }
+
+  res.status(201).json(selectUser.get(userId));
+});
+
+export default router;
