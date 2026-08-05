@@ -1,16 +1,45 @@
+/* Design System v2 tokens — info/design/meridian-design-system-v2.html */
 :root {
-  font-family: system-ui, sans-serif;
-  line-height: 1.5;
-  color: #1a1a1a;
-  background: #fafafa;
+  --canvas: #f4f5f9;
+  --surface: #ffffff;
+  --ink: #1b1e2b;
+  --muted: #6b7280;
+  --line: #e4e6ee;
+
+  --navy: #003366;
+  --navy-hover: #004080;
+  --navy-active: #003399;
+  --navy-tint: #e8edf4;
+
+  --amber: #e0631a;
+  --amber-tint: #fdece1;
+
+  --space: #0f1220;
+  --space-2: #161a2e;
+  --space-line: rgba(255, 255, 255, 0.14);
+  --space-muted: #8b90a8;
+}
+
+* {
+  box-sizing: border-box;
 }
 
 body {
   margin: 0;
+  background: var(--canvas);
+  color: var(--ink);
+  font-family: 'IBM Plex Sans', system-ui, sans-serif;
+  line-height: 1.5;
 }
 
-main {
+.mono {
+  font-family: 'IBM Plex Mono', ui-monospace, monospace;
+}
+
+/* temporary stub styling — replaced by real pages in MR-16..19 */
+.stub {
   max-width: 960px;
   margin: 0 auto;
-  padding: 2rem;
+  padding: 3rem 2rem;
+  color: var(--muted);
 }

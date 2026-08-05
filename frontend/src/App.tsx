@@ -1,22 +1,44 @@
-import { useEffect, useState } from 'react';
+import { Route, Routes, useParams } from 'react-router-dom';
+import { AuthProvider } from './auth';
+import { useAuth } from './auth-context';
 
-function App() {
-  const [api, setApi] = useState<'loading' | 'ok' | 'error'>('loading');
-
-  useEffect(() => {
-    fetch('/api/health')
-      .then((res) => setApi(res.ok ? 'ok' : 'error'))
-      .catch(() => setApi('error'));
-  }, []);
-
+// Temporary stubs — replaced by MR-16 (login), MR-17b (home), MR-17c (room grid), Epic 6 (/me).
+function Stub({ label }: { label: string }) {
+  const { user, loading } = useAuth();
   return (
-    <main>
-      <h1>Meeting Rooms</h1>
-      <p>
-        API: {api === 'loading' ? 'checking…' : api === 'ok' ? 'connected' : 'unavailable'}
-      </p>
+    <main className="stub">
+      <p>{label}</p>
+      <p className="mono">{loading ? 'checking session…' : user ? `signed in as ${user.email}` : 'not signed in'}</p>
     </main>
   );
 }
 
-export default App;
+function HomePage() {
+  return <Stub label="Home — room picker (MR-17b)" />;
+}
+
+function LoginPage() {
+  return <Stub label="Auth — login / register (MR-16)" />;
+}
+
+function RoomPage() {
+  const { id } = useParams();
+  return <Stub label={`Room ${id} — WeekGrid (MR-17c)`} />;
+}
+
+function MyBookingsPage() {
+  return <Stub label="My bookings (Epic 6)" />;
+}
+
+export default function App() {
+  return (
+    <AuthProvider>
+      <Routes>
+        <Route path="/" element={<HomePage />} />
+        <Route path="/login" element={<LoginPage />} />
+        <Route path="/rooms/:id" element={<RoomPage />} />
+        <Route path="/me" element={<MyBookingsPage />} />
+      </Routes>
+    </AuthProvider>
+  );
+}
