@@ -5,7 +5,7 @@ import { weekRange } from '../services/scheduleRange.js';
 const listRooms = db.prepare(`
   SELECT id, name, floor, capacity FROM rooms
   WHERE (@minCapacity IS NULL OR capacity >= @minCapacity)
-  ORDER BY name
+  ORDER BY id
 `);
 const roomExists = db.prepare('SELECT 1 FROM rooms WHERE id = ?');
 const weekBookings = db.prepare(`
