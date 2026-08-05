@@ -4,7 +4,7 @@ import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { fromZonedTime } from 'date-fns-tz';
 import type Database from 'better-sqlite3';
-import type { BookingConflictError, BookingError, NewBooking } from './bookingService.js';
+import type { BookingConflictError, BookingError, NewBooking } from '../../services/bookingService.js';
 
 const dir = mkdtempSync(path.join(tmpdir(), 'mr-booking-test-'));
 process.env.DB_PATH = path.join(dir, 'test.db');
@@ -23,9 +23,9 @@ const NEXT_DAY = (h: number) =>
 const VALID: NewBooking = { roomId: 1, title: 'Planning', startAt: slot(10), endAt: slot(11) };
 
 beforeAll(async () => {
-  const dbModule = await import('../db.js');
+  const dbModule = await import('../../db.js');
   db = dbModule.db;
-  const svc = await import('./bookingService.js');
+  const svc = await import('../../services/bookingService.js');
   createBooking = svc.createBooking;
   BookingConflictErrorType = svc.BookingConflictError;
   BookingErrorType = svc.BookingError;

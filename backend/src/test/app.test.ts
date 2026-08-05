@@ -18,9 +18,9 @@ const slot = (h: number, m = 0) =>
   fromZonedTime(new Date(2026, 7, 6, h, m), 'Europe/Kyiv').toISOString();
 
 beforeAll(async () => {
-  const dbModule = await import('./db.js');
+  const dbModule = await import('../db.js');
   db = dbModule.db;
-  app = (await import('./app.js')).app;
+  app = (await import('../app.js')).app;
 
   db.prepare("INSERT INTO rooms (name, floor, capacity) VALUES ('Mercury', 2, 6)").run();
   db.prepare("INSERT INTO rooms (name, floor, capacity) VALUES ('Saturn', 1, 12)").run();

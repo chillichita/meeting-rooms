@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { toZonedTime } from 'date-fns-tz';
-import { weekRange } from './scheduleRange.js';
-import { OFFICE_TIME_ZONE } from './bookingValidation.js';
+import { weekRange } from '../../services/scheduleRange.js';
+import { OFFICE_TIME_ZONE } from '../../services/bookingValidation.js';
 
 const kyivWall = (iso: string) => {
   const d = toZonedTime(new Date(iso), OFFICE_TIME_ZONE);

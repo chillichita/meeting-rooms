@@ -15,9 +15,9 @@ let db: InstanceType<typeof Database>;
 const USER = { name: 'Carol', email: 'carol@example.com', password: 'secret1234' };
 
 beforeAll(async () => {
-  const dbModule = await import('./db.js');
+  const dbModule = await import('../db.js');
   db = dbModule.db;
-  app = (await import('./app.js')).app;
+  app = (await import('../app.js')).app;
 });
 
 afterAll(() => {

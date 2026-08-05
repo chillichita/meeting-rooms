@@ -6,7 +6,7 @@ import {
   validateDuration,
   validateWorkingHours,
   validateFuture,
-} from './bookingValidation.js';
+} from '../../services/bookingValidation.js';
 
 // Kyiv wall-clock slots built via the same tzdb as the code under test.
 const slot = (h: number, m = 0) =>

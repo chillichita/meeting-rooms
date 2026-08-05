@@ -26,9 +26,9 @@ const BODY = (h: number, endH: number, title = 'Planning') => ({
 });
 
 beforeAll(async () => {
-  const dbModule = await import('./db.js');
+  const dbModule = await import('../db.js');
   db = dbModule.db;
-  app = (await import('./app.js')).app;
+  app = (await import('../app.js')).app;
 
   db.prepare("INSERT INTO rooms (name, floor, capacity) VALUES ('Mercury', 2, 6)").run();
   db.prepare(
