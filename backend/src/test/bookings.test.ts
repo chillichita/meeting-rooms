@@ -114,6 +114,36 @@ describe('POST /api/bookings', () => {
   });
 });
 
+describe('GET /api/bookings', () => {
+  it('requires authentication', async () => {
+    const res = await request(app).get('/api/bookings');
+    expect(res.status).toBe(401);
+  });
+
+  it('lists own bookings with room info, soonest first', async () => {
+    const agent = await login('alice@example.com', 'alice12345');
+    await agent.post('/api/bookings').send(BODY(15, 16, 'List me'));
+    await agent.post('/api/bookings').send(BODY(17, 18, 'List me later'));
+
+    const res = await agent.get('/api/bookings');
+    expect(res.status).toBe(200);
+    const mine = res.body.filter((b: { title: string }) => b.title.startsWith('List me'));
+    expect(mine).toHaveLength(2);
+    expect(mine[0]).toMatchObject({ title: 'List me', room_id: 1, room_name: 'Mercury', floor: 2 });
+    expect(new Date(mine[0].start_at).getTime()).toBeLessThan(new Date(mine[1].start_at).getTime());
+  });
+
+  it('does not leak other users\' bookings', async () => {
+    const alice = await login('alice@example.com', 'alice12345');
+    const bob = await login('bob@example.com', 'bob12345');
+    await bob.post('/api/bookings').send(BODY(16, 17, 'Bob secret'));
+
+    const res = await alice.get('/api/bookings');
+    expect(res.status).toBe(200);
+    expect(res.body.some((b: { title: string }) => b.title === 'Bob secret')).toBe(false);
+  });
+});
+
 describe('DELETE /api/bookings/:id', () => {
   it('cancels an own booking', async () => {
     const agent = await login('alice@example.com', 'alice12345');

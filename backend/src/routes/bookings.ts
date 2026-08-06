@@ -21,9 +21,20 @@ const createBookingSchema = z.object({
 
 const selectBooking = db.prepare('SELECT id, user_id FROM bookings WHERE id = ?');
 const deleteBooking = db.prepare('DELETE FROM bookings WHERE id = ? AND user_id = ?');
+const listMine = db.prepare(`
+  SELECT b.id, b.title, b.start_at, b.end_at, b.room_id,
+         r.name AS room_name, r.floor
+  FROM bookings b JOIN rooms r ON r.id = b.room_id
+  WHERE b.user_id = ?
+  ORDER BY b.start_at ASC
+`);
 
 const router = Router();
 router.use(requireAuth); // both endpoints need a session
+
+router.get('/', (req, res) => {
+  res.json(listMine.all((req as unknown as AuthedRequest).user.id));
+});
 
 router.post('/', (req, res) => {
   const parsed = createBookingSchema.safeParse(req.body);
