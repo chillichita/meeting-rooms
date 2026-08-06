@@ -668,13 +668,12 @@ body {
   border: 1px dashed #d3d6e1;
 }
 
-/* S1 — amber now-line = the meridian */
+/* S1 — amber now-line = the meridian (gridColumn inline: today's column;
+   gridRow inline: current slot; transform inline: continuous position) */
 .now-line {
-  grid-column: 1 / -1;
   height: 2px;
   background: var(--amber);
   align-self: start;
-  margin-top: -1px;
   z-index: 3;
   pointer-events: none;
 }

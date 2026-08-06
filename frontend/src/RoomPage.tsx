@@ -75,8 +75,14 @@ export default function RoomPage() {
     }
   }
 
-  // S1 — amber now-line at the current 30-min slot, office day only.
-  const nowLineIdx = firstSlot ? Math.floor((now.getTime() - firstSlot.getTime()) / SLOT_MS) : -1;
+  // S1 — amber now-line, continuous within the current 30-min slot (Google
+  // Calendar style): gridRow pins the slot, translateY places it inside it.
+  const nowDayIdx = (now.getDay() + 6) % 7;
+  const nowDayStart = firstSlot ? firstSlot.getTime() + nowDayIdx * 24 * 60 * 60_000 : 0;
+  const nowLineIdx = firstSlot ? Math.floor((now.getTime() - nowDayStart) / SLOT_MS) : -1;
+  const slotFrac = firstSlot
+    ? (now.getTime() - (nowDayStart + nowLineIdx * SLOT_MS)) / SLOT_MS
+    : 0;
   const showNowLine = nowLineIdx >= 0 && nowLineIdx < slots.length;
 
   return (
@@ -209,7 +215,11 @@ export default function RoomPage() {
               {showNowLine && (
                 <div
                   className="now-line"
-                  style={{ gridRow: `${3 + nowLineIdx} / ${4 + nowLineIdx}` }}
+                  style={{
+                    gridColumn: nowDayIdx + 2, // today's column only, like Google Calendar
+                    gridRow: `${3 + nowLineIdx} / ${4 + nowLineIdx}`,
+                    transform: `translateY(${slotFrac * ROW_H - 1}px)`, // line center on "now"
+                  }}
                 />
               )}
             </div>
