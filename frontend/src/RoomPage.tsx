@@ -1,5 +1,5 @@
 import { Fragment, useCallback, useEffect, useState } from 'react';
-import { useLocation, useNavigate, useParams } from 'react-router-dom';
+import { useLocation, useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { addDays, format, isToday } from 'date-fns';
 import { getTimezoneOffset } from 'date-fns-tz';
 import { api, type Booking, type Room } from './api';
@@ -22,7 +22,11 @@ export default function RoomPage() {
   const { user } = useAuth();
   const navigate = useNavigate();
   const { pathname } = useLocation();
-  const [monday, setMonday] = useState(() => mondayOf(new Date()));
+  const [searchParams] = useSearchParams();
+  const [monday, setMonday] = useState(() => {
+    const week = searchParams.get('week'); // deep link from My bookings
+    return week ? mondayOf(new Date(week)) : mondayOf(new Date());
+  });
   const [room, setRoom] = useState<Room | null>(null);
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [loading, setLoading] = useState(true);
@@ -31,7 +35,10 @@ export default function RoomPage() {
   const [bookingStart, setBookingStart] = useState<Date | null>(null);
   const [confirmBooking, setConfirmBooking] = useState<Booking | null>(null);
   const [toast, setToast] = useState<string | null>(null);
-  const [highlightId, setHighlightId] = useState<number | null>(null);
+  const [highlightId, setHighlightId] = useState<number | null>(() => {
+    const hl = searchParams.get('hl'); // deep link from My bookings
+    return hl ? Number(hl) : null;
+  });
 
   useEffect(() => {
     const t = setInterval(() => setNow(new Date()), 60_000);

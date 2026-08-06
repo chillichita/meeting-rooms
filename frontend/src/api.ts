@@ -11,6 +11,13 @@ export type Booking = {
   user_name: string;
 };
 
+/** Booking as listed on /api/bookings (own bookings, joined with the room). */
+export type MyBooking = Booking & {
+  room_id: number;
+  room_name: string;
+  floor: number;
+};
+
 export class ApiError extends Error {
   status: number;
   field?: string;
