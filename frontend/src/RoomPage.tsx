@@ -31,6 +31,7 @@ export default function RoomPage() {
   const [bookingStart, setBookingStart] = useState<Date | null>(null);
   const [confirmBooking, setConfirmBooking] = useState<Booking | null>(null);
   const [toast, setToast] = useState<string | null>(null);
+  const [highlightId, setHighlightId] = useState<number | null>(null);
 
   useEffect(() => {
     const t = setInterval(() => setNow(new Date()), 60_000);
@@ -43,6 +44,13 @@ export default function RoomPage() {
     const t = setTimeout(() => setToast(null), 4000);
     return () => clearTimeout(t);
   }, [toast]);
+
+  // Fresh booking pulse: clear the highlight after the animation runs
+  useEffect(() => {
+    if (highlightId == null) return;
+    const t = setTimeout(() => setHighlightId(null), 2600);
+    return () => clearTimeout(t);
+  }, [highlightId]);
 
   const load = useCallback(() => {
     setLoading(true);
@@ -224,7 +232,9 @@ export default function RoomPage() {
                         >
                           {s && (
                             <div
-                              className={`slot${s.mine ? ' mine' : ' other'}`}
+                              className={`slot${s.mine ? ' mine' : ' other'}${
+                                s.booking.id === highlightId ? ' highlight' : ''
+                              }`}
                               style={{ height: s.len * ROW_H - 2 }}
                               onClick={(e) => {
                                 e.stopPropagation();
@@ -292,9 +302,10 @@ export default function RoomPage() {
           room={room}
           initialStart={bookingStart}
           onClose={() => setBookingStart(null)}
-          onCreated={() => {
+          onCreated={(created) => {
             setToast('Booking created.');
             setBookingStart(null);
+            setHighlightId(created.id);
             load();
           }}
         />

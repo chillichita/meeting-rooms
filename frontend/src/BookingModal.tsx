@@ -1,7 +1,7 @@
 import { useState, type FormEvent } from 'react';
 import { format } from 'date-fns';
 import { toZonedTime } from 'date-fns-tz';
-import { api, ApiError, type Room } from './api';
+import { api, ApiError, type Booking, type Room } from './api';
 
 const OFFICE_TZ = 'Europe/Kyiv';
 
@@ -10,7 +10,7 @@ type Props = {
   /** Slot start as a local instant (the clicked cell). */
   initialStart: Date;
   onClose: () => void;
-  onCreated: () => void;
+  onCreated: (created: Booking) => void;
 };
 
 const toDateInput = (d: Date) => format(d, 'yyyy-MM-dd');
@@ -97,7 +97,7 @@ export default function BookingModal({ room, initialStart, onClose, onCreated }:
 
     setSubmitting(true);
     try {
-      await api('/api/bookings', {
+      const created = await api<Booking>('/api/bookings', {
         method: 'POST',
         body: JSON.stringify({
           roomId: room.id,
@@ -106,7 +106,7 @@ export default function BookingModal({ room, initialStart, onClose, onCreated }:
           endAt: end.toISOString(),
         }),
       });
-      onCreated();
+      onCreated(created);
     } catch (err) {
       if (err instanceof ApiError && err.status === 409) {
         setServerError('This slot was just booked by someone else. Pick another time.');

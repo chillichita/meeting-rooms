@@ -799,6 +799,20 @@ body {
   z-index: 60;
   animation: rise-in 200ms ease-out;
 }
+
+/* Fresh booking confirmation: amber pulse where it landed */
+.slot.highlight {
+  animation: slot-pop 600ms ease-in-out 3;
+}
+@keyframes slot-pop {
+  0%,
+  100% {
+    box-shadow: none;
+  }
+  50% {
+    box-shadow: 0 0 0 2px var(--amber), 0 0 14px rgba(224, 99, 26, 0.45);
+  }
+}
 .gtable.skeleton .ghead,
 .gtable.skeleton .gcell {
   border-color: transparent;
