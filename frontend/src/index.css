@@ -939,6 +939,41 @@ body {
   font-size: 12px;
   color: var(--muted);
 }
+
+/* ---- MR-21: responsive, no horizontal page scroll at 360px (spec) ---- */
+@media (max-width: 560px) {
+  .navbar {
+    flex-wrap: wrap;
+    gap: 8px 14px;
+    padding: 10px 14px;
+  }
+  .navbar nav {
+    order: 3;
+    width: 100%;
+    margin-left: 0;
+  }
+  .chip .chip-mail {
+    display: none; /* avatar + Logout stay; email returns on wider screens */
+  }
+  .grid-wrap {
+    padding: 12px 14px 18px;
+    overflow-x: auto; /* the week grid scrolls inside its card, page stays put */
+  }
+  .gtable {
+    min-width: 620px; /* readable columns; horizontal scroll inside grid-wrap */
+  }
+}
+@media (max-width: 480px) {
+  .two {
+    flex-wrap: wrap;
+  }
+  .two .field:first-child {
+    flex: 1 1 100%; /* date on its own row */
+  }
+  .modal-overlay {
+    padding: 12px;
+  }
+}
 .gtable.skeleton .ghead,
 .gtable.skeleton .gcell {
   border-color: transparent;

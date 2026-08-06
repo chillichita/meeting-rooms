@@ -66,7 +66,7 @@ export default function Navbar() {
         {user ? (
           <div className="chip">
             <div className="avatar">{user.name.charAt(0).toUpperCase()}</div>
-            <span>{user.email}</span>
+            <span className="chip-mail">{user.email}</span>
             <button type="button" className="logout-btn" onClick={onLogout}>
               Logout
             </button>
