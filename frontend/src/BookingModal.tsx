@@ -16,6 +16,28 @@ type Props = {
 const toDateInput = (d: Date) => format(d, 'yyyy-MM-dd');
 const toTimeInput = (d: Date) => format(d, 'HH:mm');
 
+/** 30-min office slots as 'HH:mm' strings, inclusive bounds. */
+const slotTimes = (from: string, to: string) => {
+  const out: string[] = [];
+  let [h, m] = from.split(':').map(Number);
+  const [eh, em] = to.split(':').map(Number);
+  while (h < eh || (h === eh && m <= em)) {
+    out.push(`${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`);
+    m += 30;
+    if (m >= 60) {
+      h += 1;
+      m = 0;
+    }
+  }
+  return out;
+};
+const STARTS = slotTimes('09:00', '18:30');
+const ENDS = slotTimes('09:30', '19:00');
+const add30 = (t: string) => {
+  const [h, m] = t.split(':').map(Number);
+  return `${String((m + 30) % 60 === 0 ? h + 1 : h).padStart(2, '0')}:${String((m + 30) % 60).padStart(2, '0')}`;
+};
+
 /** Combine date+time inputs (browser wall time) into a local instant. */
 const buildDate = (dateStr: string, timeStr: string) => {
   const [y, m, d] = dateStr.split('-').map(Number);
@@ -134,27 +156,39 @@ export default function BookingModal({ room, initialStart, onClose, onCreated }:
                 <label className="lbl" htmlFor="bk-start">
                   Start
                 </label>
-                <input
+                <select
                   id="bk-start"
-                  type="time"
-                  step={1800}
                   className="input"
                   value={startStr}
-                  onChange={(e) => setStartStr(e.target.value)}
-                />
+                  onChange={(e) => {
+                    const v = e.target.value;
+                    setStartStr(v);
+                    if (endStr <= v) setEndStr(add30(v)); // keep end after start
+                  }}
+                >
+                  {STARTS.map((t) => (
+                    <option key={t} value={t}>
+                      {t}
+                    </option>
+                  ))}
+                </select>
               </div>
               <div className="field">
                 <label className="lbl" htmlFor="bk-end">
                   End
                 </label>
-                <input
+                <select
                   id="bk-end"
-                  type="time"
-                  step={1800}
                   className="input"
                   value={endStr}
                   onChange={(e) => setEndStr(e.target.value)}
-                />
+                >
+                  {ENDS.map((t) => (
+                    <option key={t} value={t}>
+                      {t}
+                    </option>
+                  ))}
+                </select>
               </div>
             </div>
             {errors.range && <div className="err">{errors.range}</div>}
