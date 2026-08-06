@@ -1,10 +1,11 @@
 import { Fragment, useCallback, useEffect, useState } from 'react';
-import { useParams } from 'react-router-dom';
+import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import { addDays, format, isToday } from 'date-fns';
 import { getTimezoneOffset } from 'date-fns-tz';
 import { api, type Booking, type Room } from './api';
 import { fmtWeekLabel, mondayOf, officeEnd, officeSlots, toYmd, weekDays, OFFICE_TZ } from './grid';
 import { useAuth } from './auth-context';
+import BookingModal from './BookingModal';
 
 const SLOT_MS = 30 * 60_000;
 const ROW_H = 28; // matches grid-auto-rows in CSS
@@ -19,17 +20,29 @@ export default function RoomPage() {
   const { id } = useParams();
   const roomId = Number(id);
   const { user } = useAuth();
+  const navigate = useNavigate();
+  const { pathname } = useLocation();
   const [monday, setMonday] = useState(() => mondayOf(new Date()));
   const [room, setRoom] = useState<Room | null>(null);
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
   const [now, setNow] = useState(() => new Date());
+  const [bookingStart, setBookingStart] = useState<Date | null>(null);
+  const [confirmBooking, setConfirmBooking] = useState<Booking | null>(null);
+  const [toast, setToast] = useState<string | null>(null);
 
   useEffect(() => {
     const t = setInterval(() => setNow(new Date()), 60_000);
     return () => clearInterval(t);
   }, []);
+
+  // S5 — toast auto-dismiss
+  useEffect(() => {
+    if (!toast) return;
+    const t = setTimeout(() => setToast(null), 4000);
+    return () => clearTimeout(t);
+  }, [toast]);
 
   const load = useCallback(() => {
     setLoading(true);
@@ -84,6 +97,26 @@ export default function RoomPage() {
     ? (now.getTime() - (nowDayStart + nowLineIdx * SLOT_MS)) / SLOT_MS
     : 0;
   const showNowLine = nowLineIdx >= 0 && nowLineIdx < slots.length;
+
+  const openSlot = (dayIdx: number, slotIdx: number) => {
+    if (!user) {
+      navigate(`/login?next=${pathname}`);
+      return;
+    }
+    setBookingStart(new Date(slots[slotIdx].getTime() + dayIdx * 24 * 60 * 60_000));
+  };
+
+  const cancelBooking = async () => {
+    if (!confirmBooking) return;
+    try {
+      await api(`/api/bookings/${confirmBooking.id}`, { method: 'DELETE' });
+      setToast('Booking cancelled.');
+      setConfirmBooking(null);
+      load();
+    } catch {
+      setConfirmBooking(null); // 403/404 — grid reloads fresh data anyway
+    }
+  };
 
   return (
     <div className="room-page">
@@ -181,11 +214,22 @@ export default function RoomPage() {
                           key={d.getTime()}
                           className={`gcell${half ? ' half' : ''}${isToday(d) ? ' today-col' : ''}`}
                           style={{ gridColumn: di + 2, gridRow: `${row} / ${row + 1}` }}
+                          role="button"
+                          aria-label={
+                            s
+                              ? `Booked ${format(d, 'EEE')} ${format(slot, 'HH:mm')}`
+                              : `Free slot ${format(d, 'EEE')} ${format(slot, 'HH:mm')}`
+                          }
+                          onClick={() => !s && openSlot(di, i)}
                         >
                           {s && (
                             <div
                               className={`slot${s.mine ? ' mine' : ' other'}`}
                               style={{ height: s.len * ROW_H - 2 }}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                if (s.mine) setConfirmBooking(s.booking);
+                              }}
                             >
                               {s.booking.title} · {s.booking.user_name}
                             </div>
@@ -242,6 +286,47 @@ export default function RoomPage() {
           </>
         )}
       </div>
+
+      {bookingStart && room && (
+        <BookingModal
+          room={room}
+          initialStart={bookingStart}
+          onClose={() => setBookingStart(null)}
+          onCreated={() => {
+            setToast('Booking created.');
+            setBookingStart(null);
+            load();
+          }}
+        />
+      )}
+
+      {confirmBooking && (
+        <div className="modal-overlay" onClick={() => setConfirmBooking(null)}>
+          <div className="modal" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-head">
+              <b>Cancel this booking?</b>
+            </div>
+            <div className="modal-body">
+              <p className="confirm-text">
+                &ldquo;{confirmBooking.title}&rdquo; on{' '}
+                {format(new Date(confirmBooking.start_at), 'EEE, MMM dd')},{' '}
+                {format(new Date(confirmBooking.start_at), 'HH:mm')}–
+                {format(new Date(confirmBooking.end_at), 'HH:mm')}. This can't be undone.
+              </p>
+            </div>
+            <div className="modal-foot">
+              <button type="button" className="btn" onClick={() => setConfirmBooking(null)}>
+                Keep booking
+              </button>
+              <button type="button" className="btn btn-danger" onClick={cancelBooking}>
+                Cancel booking
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {toast && <div className="toast">{toast}</div>}
     </div>
   );
 }
