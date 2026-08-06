@@ -14,11 +14,22 @@ let createBooking: (userId: number, input: NewBooking) => unknown;
 let BookingConflictErrorType: typeof BookingConflictError;
 let BookingErrorType: typeof BookingError;
 
-// Kyiv wall-clock slot as UTC instant, same tzdb as production code.
+// Kyiv wall-clock slots tomorrow and the day after (same tzdb as production),
+// always in the future.
+const TOMORROW = new Date();
+TOMORROW.setDate(TOMORROW.getDate() + 1);
+const DAY_AFTER = new Date(TOMORROW);
+DAY_AFTER.setDate(DAY_AFTER.getDate() + 1);
 const slot = (h: number, m = 0) =>
-  fromZonedTime(new Date(2026, 7, 6, h, m), 'Europe/Kyiv').toISOString();
+  fromZonedTime(
+    new Date(TOMORROW.getFullYear(), TOMORROW.getMonth(), TOMORROW.getDate(), h, m),
+    'Europe/Kyiv',
+  ).toISOString();
 const NEXT_DAY = (h: number) =>
-  fromZonedTime(new Date(2026, 7, 7, h, 0), 'Europe/Kyiv').toISOString();
+  fromZonedTime(
+    new Date(DAY_AFTER.getFullYear(), DAY_AFTER.getMonth(), DAY_AFTER.getDate(), h, 0),
+    'Europe/Kyiv',
+  ).toISOString();
 
 const VALID: NewBooking = { roomId: 1, title: 'Planning', startAt: slot(10), endAt: slot(11) };
 

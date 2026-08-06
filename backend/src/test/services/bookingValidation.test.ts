@@ -8,9 +8,15 @@ import {
   validateFuture,
 } from '../../services/bookingValidation.js';
 
-// Kyiv wall-clock slots built via the same tzdb as the code under test.
+// Kyiv wall-clock slots tomorrow (same tzdb as the code under test), always in
+// the future — validateFuture must not reject the fixtures.
+const TOMORROW = new Date();
+TOMORROW.setDate(TOMORROW.getDate() + 1);
 const slot = (h: number, m = 0) =>
-  fromZonedTime(new Date(2026, 7, 6, h, m), 'Europe/Kyiv').toISOString();
+  fromZonedTime(
+    new Date(TOMORROW.getFullYear(), TOMORROW.getMonth(), TOMORROW.getDate(), h, m),
+    'Europe/Kyiv',
+  ).toISOString();
 
 describe('validateAlignment', () => {
   it('accepts 30-minute boundaries', () => {

@@ -14,9 +14,14 @@ process.env.DB_PATH = path.join(dir, 'test.db');
 let app: Express;
 let db: InstanceType<typeof Database>;
 
-// Kyiv wall slots (same tzdb as production), inside week 2026-08-03..08-09.
+// Kyiv wall slots tomorrow (same tzdb as production), always in the future.
+const TOMORROW = new Date();
+TOMORROW.setDate(TOMORROW.getDate() + 1);
 const slot = (h: number, m = 0) =>
-  fromZonedTime(new Date(2026, 7, 6, h, m), 'Europe/Kyiv').toISOString();
+  fromZonedTime(
+    new Date(TOMORROW.getFullYear(), TOMORROW.getMonth(), TOMORROW.getDate(), h, m),
+    'Europe/Kyiv',
+  ).toISOString();
 
 const BODY = (h: number, endH: number, title = 'Planning') => ({
   roomId: 1,

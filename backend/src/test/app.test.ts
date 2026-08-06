@@ -13,9 +13,18 @@ process.env.DB_PATH = path.join(dir, 'test.db');
 let app: Express;
 let db: InstanceType<typeof Database>;
 
-// Kyiv wall slots (same tzdb as production), inside week 2026-08-03..08-09.
+// Kyiv wall slots tomorrow (same tzdb as production), always in the future.
+const TOMORROW = new Date();
+TOMORROW.setDate(TOMORROW.getDate() + 1);
 const slot = (h: number, m = 0) =>
-  fromZonedTime(new Date(2026, 7, 6, h, m), 'Europe/Kyiv').toISOString();
+  fromZonedTime(
+    new Date(TOMORROW.getFullYear(), TOMORROW.getMonth(), TOMORROW.getDate(), h, m),
+    'Europe/Kyiv',
+  ).toISOString();
+const ymd = (d: Date) =>
+  `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+const NEXT_WEEK = new Date(TOMORROW);
+NEXT_WEEK.setDate(NEXT_WEEK.getDate() + 7);
 
 beforeAll(async () => {
   const dbModule = await import('../db.js');
@@ -30,8 +39,8 @@ beforeAll(async () => {
   ).run('Sprint planning', slot(10), slot(11));
   db.prepare(
     'INSERT INTO bookings (user_id, room_id, title, start_at, end_at) VALUES (1, 1, ?, ?, ?)'
-  ).run('Next week', fromZonedTime(new Date(2026, 7, 13, 10), 'Europe/Kyiv').toISOString(),
-    fromZonedTime(new Date(2026, 7, 13, 11), 'Europe/Kyiv').toISOString());
+  ).run('Next week', fromZonedTime(new Date(NEXT_WEEK.getFullYear(), NEXT_WEEK.getMonth(), NEXT_WEEK.getDate(), 10), 'Europe/Kyiv').toISOString(),
+    fromZonedTime(new Date(NEXT_WEEK.getFullYear(), NEXT_WEEK.getMonth(), NEXT_WEEK.getDate(), 11), 'Europe/Kyiv').toISOString());
 });
 
 afterAll(() => {
@@ -63,7 +72,7 @@ describe('GET /api/rooms', () => {
 
 describe('GET /api/rooms/:id/bookings', () => {
   it('returns the bookings of the week, with author names', async () => {
-    const res = await request(app).get('/api/rooms/1/bookings').query({ week: '2026-08-06' });
+    const res = await request(app).get('/api/rooms/1/bookings').query({ week: ymd(TOMORROW) });
     expect(res.status).toBe(200);
     expect(res.body).toHaveLength(1);
     expect(res.body[0]).toMatchObject({
@@ -75,20 +84,20 @@ describe('GET /api/rooms/:id/bookings', () => {
   });
 
   it('excludes bookings from other weeks', async () => {
-    const res = await request(app).get('/api/rooms/1/bookings').query({ week: '2026-08-10' });
+    const res = await request(app).get('/api/rooms/1/bookings').query({ week: ymd(NEXT_WEEK) });
     expect(res.status).toBe(200);
     expect(res.body).toHaveLength(1);
     expect(res.body[0].title).toBe('Next week');
   });
 
   it('returns an empty list for a week without bookings', async () => {
-    const res = await request(app).get('/api/rooms/2/bookings').query({ week: '2026-08-06' });
+    const res = await request(app).get('/api/rooms/2/bookings').query({ week: ymd(TOMORROW) });
     expect(res.status).toBe(200);
     expect(res.body).toEqual([]);
   });
 
   it('rejects an unknown room with 404', async () => {
-    const res = await request(app).get('/api/rooms/999/bookings').query({ week: '2026-08-06' });
+    const res = await request(app).get('/api/rooms/999/bookings').query({ week: ymd(TOMORROW) });
     expect(res.status).toBe(404);
   });
 
