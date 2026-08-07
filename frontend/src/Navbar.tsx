@@ -42,6 +42,17 @@ export default function Navbar() {
   const { pathname } = useLocation();
   // Rooms covers both "/" (the picker) and "/rooms/:id" (the schedule).
   const roomsActive = pathname === '/' || pathname.startsWith('/rooms');
+  // Home is the dark space canvas — the pill turns dark glass there, light elsewhere.
+  const glass = pathname === '/';
+
+  const [now, setNow] = useState(() => new Date());
+  useEffect(() => {
+    const t = setInterval(() => setNow(new Date()), 15_000);
+    return () => clearInterval(t);
+  }, []);
+
+  const kyiv = toZonedTime(now, OFFICE_TZ);
+  const clock = `${String(kyiv.getHours()).padStart(2, '0')}:${String(kyiv.getMinutes()).padStart(2, '0')}`;
 
   const onLogout = () => {
     logout();
@@ -49,7 +60,7 @@ export default function Navbar() {
   };
 
   return (
-    <header className="navbar">
+    <header className={`navbar${glass ? ' glass' : ' light'}`}>
       <Link to="/" className="logo">
         <LogoClock />
         Meridian
@@ -63,6 +74,7 @@ export default function Navbar() {
         </NavLink>
       </nav>
       <div className="right">
+        <span className="clock mono">Kyiv {clock}</span>
         {user ? (
           <div className="chip">
             <div className="avatar">{user.name.charAt(0).toUpperCase()}</div>

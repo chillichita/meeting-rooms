@@ -6,137 +6,328 @@ import { api, type Room } from './api';
 const OFFICE_TZ = 'Europe/Kyiv';
 const OFFICE_OPEN = 9;
 const OFFICE_CLOSE = 19;
-const CARD_WIDTH = 400;
-const CARD_GAP = 12;
+
+// Demo photos keyed by room name (info/design/meridian-full-demo.html).
+const PHOTOS: Record<string, string> = {
+  Mercury: 'https://images.unsplash.com/photo-1497366216548-37526070297c?w=800&q=65',
+  Venus: 'https://images.unsplash.com/photo-1497366811353-6870744d04b2?w=800&q=65',
+  Earth: 'https://images.unsplash.com/photo-1517502884422-41eaead166d4?w=800&q=65',
+  Mars: 'https://images.unsplash.com/photo-1524758631624-e2822e304c36?w=800&q=65',
+  Jupiter: 'https://images.unsplash.com/photo-1497215728101-856f4ea42174?w=800&q=65',
+  Saturn: 'https://images.unsplash.com/photo-1560264280-88b68371db39?w=800&q=65',
+};
 
 export default function HomePage() {
   const [rooms, setRooms] = useState<Room[]>([]);
   const [error, setError] = useState(false);
-  const [selectedId, setSelectedId] = useState<number | null>(null);
+  const [cur, setCur] = useState(0);
+  const [switching, setSwitching] = useState(false);
   const [now, setNow] = useState(() => new Date());
-  const gridRef = useRef<HTMLDivElement>(null);
 
-  // one card + gap per click
-  const scrollByCard = (dir: number) =>
-    gridRef.current?.scrollBy({ left: dir * (CARD_WIDTH + CARD_GAP), behavior: 'smooth' });
-
-  useEffect(() => {
-    const t = setInterval(() => setNow(new Date()), 60_000);
-    return () => clearInterval(t);
-  }, []);
+  const stageRef = useRef<HTMLDivElement>(null);
+  const heroRef = useRef<HTMLElement>(null);
+  const roomsRef = useRef<HTMLElement>(null);
+  const footerRef = useRef<HTMLElement>(null);
+  const svgRef = useRef<SVGSVGElement>(null);
+  const pathRef = useRef<SVGPathElement>(null);
+  const domeRef = useRef<HTMLDivElement>(null);
+  const domeGlowRef = useRef<HTMLDivElement>(null);
+  const heroSunRef = useRef<HTMLDivElement>(null);
+  const vignetteRef = useRef<HTMLDivElement>(null);
+  const roomsGlowRef = useRef<HTMLDivElement>(null);
+  const terminusRef = useRef<HTMLDivElement>(null);
+  const idxRowRef = useRef<HTMLDivElement>(null);
+  const idxFillRef = useRef<HTMLDivElement>(null);
+  const timerRef = useRef<number | undefined>(undefined);
 
   const load = () => {
     setError(false);
     api<Room[]>('/api/rooms')
       .then((list) => {
         setRooms(list);
-        setSelectedId((id) => id ?? list[0]?.id ?? null);
+        setCur((c) => (c < list.length ? c : 0));
       })
       .catch(() => setError(true));
   };
 
   useEffect(load, []);
 
+  // the hero canvas is dark full-bleed; keep the strip behind the floating nav dark too
+  useEffect(() => {
+    document.body.classList.add('dark');
+    return () => document.body.classList.remove('dark');
+  }, []);
+
+  useEffect(() => {
+    const t = setInterval(() => setNow(new Date()), 60_000);
+    return () => clearInterval(t);
+  }, []);
+
+  // Meridian: one line from the dome top, through the rooms, to the footer terminus —
+  // drawn by scroll, with dome parallax, seam vignette, rooms glow and terminus light.
+  useEffect(() => {
+    const mq = window.matchMedia('(max-width: 760px)');
+    let totalLen = 0;
+    let ticking = false;
+
+    const buildPath = () => {
+      const stage = stageRef.current;
+      const svg = svgRef.current;
+      const path = pathRef.current;
+      const dome = domeRef.current;
+      const footer = footerRef.current;
+      if (!stage || !svg || !path || !dome || !footer) return;
+      const stageH = stage.offsetHeight;
+      const stageW = stage.offsetWidth;
+      svg.setAttribute('viewBox', `0 0 ${stageW} ${stageH}`);
+      svg.style.height = `${stageH}px`;
+      const stageRect = stage.getBoundingClientRect();
+      const startY = dome.getBoundingClientRect().top - stageRect.top;
+      const endY = footer.getBoundingClientRect().top - stageRect.top + 34; // the terminus dot
+      path.setAttribute('d', `M${stageW / 2} ${startY} L${stageW / 2} ${endY}`);
+      totalLen = path.getTotalLength();
+      path.style.strokeDasharray = String(totalLen);
+      path.style.strokeDashoffset = String(totalLen);
+    };
+
+    const triangle = (x: number, center: number, halfWidth: number) =>
+      Math.max(0, 1 - Math.abs(x - center) / halfWidth);
+
+    const update = () => {
+      ticking = false;
+      const hero = heroRef.current;
+      if (mq.matches || !hero) return; // mobile: static, no scroll-linked motion
+
+      const scrollY = window.scrollY;
+      const vh = window.innerHeight;
+      const docH = document.documentElement.scrollHeight - vh;
+      const pageProgress = docH > 0 ? Math.min(1, Math.max(0, scrollY / docH)) : 0;
+
+      if (totalLen && pathRef.current) {
+        pathRef.current.style.strokeDashoffset = String(totalLen * (1 - pageProgress));
+      }
+      const heroH = hero.offsetHeight;
+      const heroProgress = Math.min(1, Math.max(0, scrollY / heroH));
+      if (domeRef.current) domeRef.current.style.transform = `translate(-50%, ${-heroProgress * 70}px)`;
+      if (domeGlowRef.current) domeGlowRef.current.style.opacity = String(0.7 + heroProgress * 0.3);
+      if (heroSunRef.current) heroSunRef.current.style.opacity = String(0.8 + heroProgress * 0.2);
+
+      const seamY = hero.offsetTop + heroH;
+      const seamProgress = triangle(scrollY + vh * 0.72, seamY, vh * 0.5);
+      if (vignetteRef.current) vignetteRef.current.style.opacity = String(seamProgress * 0.9);
+
+      const glow = roomsGlowRef.current;
+      if (glow) {
+        const rect = glow.getBoundingClientRect();
+        const roomsMid = triangle(vh / 2, (rect.top + rect.bottom) / 2, vh * 0.6);
+        glow.style.opacity = String(0.65 + roomsMid * 0.35);
+      }
+
+      const footer = footerRef.current;
+      if (footer && terminusRef.current) {
+        terminusRef.current.classList.toggle('lit', footer.getBoundingClientRect().top < vh * 0.85);
+      }
+    };
+
+    const onScroll = () => {
+      if (!ticking) {
+        requestAnimationFrame(update);
+        ticking = true;
+      }
+    };
+
+    const init = () => {
+      buildPath();
+      update();
+    };
+
+    window.addEventListener('scroll', onScroll, { passive: true });
+    window.addEventListener('resize', init);
+    if (document.fonts && document.fonts.ready) document.fonts.ready.then(init);
+    init();
+    return () => {
+      window.removeEventListener('scroll', onScroll);
+      window.removeEventListener('resize', init);
+    };
+  }, []);
+
+  useEffect(() => () => window.clearTimeout(timerRef.current), []);
+
+  // keep the amber underline under the active room number
+  useEffect(() => {
+    const fill = idxFillRef.current;
+    const row = idxRowRef.current;
+    if (!fill || !row) return;
+    const active = row.querySelector<HTMLElement>('.idx.on');
+    if (active) {
+      fill.style.left = `${active.offsetLeft}px`;
+      fill.style.width = `${active.offsetWidth}px`;
+    }
+  }, [cur, rooms]);
+
+  const go = (i: number) => {
+    if (rooms.length === 0) return;
+    const next = (i + rooms.length) % rooms.length;
+    if (next === cur) return;
+    window.clearTimeout(timerRef.current);
+    setSwitching(true);
+    timerRef.current = window.setTimeout(() => {
+      setCur(next);
+      setSwitching(false);
+    }, 260);
+  };
+
   const kyiv = toZonedTime(now, OFFICE_TZ);
   const hour = kyiv.getHours() + kyiv.getMinutes() / 60;
   const open = hour >= OFFICE_OPEN && hour < OFFICE_CLOSE; // H2
 
-  const selected = rooms.find((r) => r.id === selectedId) ?? null;
+  const selected = rooms[cur] ?? null;
 
   return (
-    <div className={`space-canvas${open ? '' : ' closed'}`}>
-      {/* H4 — meridian arc draws itself as you scroll; static without animation-timeline */}
-      <svg className="hero-arc" viewBox="0 0 900 500" fill="none" aria-hidden="true">
-        <path d="M450 500 Q 150 380 120 40" stroke="rgba(255,255,255,0.14)" strokeWidth="2" strokeLinecap="round" />
+    <div className="stage" ref={stageRef}>
+      <svg className="meridian-svg" ref={svgRef} preserveAspectRatio="none" aria-hidden="true">
+        <path ref={pathRef} className="meridian-path" d="" />
       </svg>
 
-      <div className="space-inner">
-        <div className="space-head">
-          <span className="label">Rooms</span>
-          <span className="count mono">
-            {error
-              ? ''
-              : `${String(rooms.length).padStart(2, '0')} / ${String(rooms.length).padStart(2, '0')} · ${
-                  open ? 'free now' : 'office closed'
-                }`}
-          </span>
+      {/* hero: dome arc, cool center glow, amber sunrise at the dome rim */}
+      <section className="hero" ref={heroRef}>
+        <div className="dome-layer" ref={domeRef}>
+          <div className="dome-glow" ref={domeGlowRef} />
+          <div className="dome" />
         </div>
+        <div className="hero-sun" ref={heroSunRef} />
+        <div className="hero-inner">
+          <span className="badge mono">
+            {rooms.length} meeting rooms · Office time Europe/Kyiv
+          </span>
+          <h1 className="mono">
+            One time,
+            <br />
+            every zone.
+          </h1>
+          <p className="sub">
+            Book a meeting room across time zones — the schedule shows in your time, the office
+            runs on Kyiv.
+          </p>
+          <button
+            type="button"
+            className="btn-hero"
+            onClick={() => roomsRef.current?.scrollIntoView({ behavior: 'smooth' })}
+          >
+            Book a room
+          </button>
+        </div>
+        <div className="vignette" ref={vignetteRef} />
+      </section>
 
-        {error ? (
-          <div className="space-error">
-            <p>Couldn't load the rooms.</p>
-            <p className="sub">The server may be temporarily unavailable.</p>
-            <button type="button" className="btn btn-ghost-d" onClick={load}>
-              Try again
-            </button>
+      {/* rooms: one glass card at a time, fed by the meridian */}
+      <section className="rooms" ref={roomsRef}>
+        <div className="rooms-glow" ref={roomsGlowRef} />
+        <div className="rooms-inner">
+          <div className="rooms-head">
+            <span className="label">Rooms</span>
+            <span className="count mono">
+              {error ? '' : `${String(cur + 1).padStart(2, '0')} / ${String(rooms.length).padStart(2, '0')}`}
+            </span>
           </div>
-        ) : rooms.length === 0 ? (
-          <div className="space-error">
-            <p>No rooms yet.</p>
-          </div>
-        ) : (
-          <div className="room-grid-wrap">
-            <button
-              type="button"
-              className="carousel-btn prev"
-              aria-label="Previous rooms"
-              onClick={() => scrollByCard(-1)}
-            >
-              ‹
-            </button>
-            <div className="room-grid" ref={gridRef}>
-              {rooms.map((room, i) => (
-                <button
-                  key={room.id}
-                  type="button"
-                  className={`room-card${room.id === selectedId ? ' sel' : ''}`}
-                  onClick={() => setSelectedId(room.id)}
-                >
-                  <span className="num mono">{String(i + 1).padStart(2, '0')}</span>
-                  <span className="ico" />
-                  <b>{room.name}</b>
-                  <span>
-                    {room.capacity} people · F{room.floor}
-                  </span>
-                </button>
-              ))}
-            </div>
-            <button
-              type="button"
-              className="carousel-btn next"
-              aria-label="Next rooms"
-              onClick={() => scrollByCard(1)}
-            >
-              ›
-            </button>
-          </div>
-        )}
 
-        {!error && selected && (
-          <div className="detail">
-            <div className="idx mono">
-              {rooms.map((room, i) => (
-                <span key={room.id} className={room.id === selectedId ? 'sel' : ''}>
-                  {String(i + 1).padStart(2, '0')} {room.name}
-                </span>
-              ))}
+          {error ? (
+            <div className="space-error">
+              <p>Couldn't load the rooms.</p>
+              <p className="sub">The server may be temporarily unavailable.</p>
+              <button type="button" className="btn btn-ghost-d" onClick={load}>
+                Try again
+              </button>
             </div>
-            <div className="desc">
-              <h5>{selected.name}</h5>
-              <p>
-                Floor {selected.floor} · up to {selected.capacity} people.
-              </p>
-              <div className="acts">
-                <Link to={`/rooms/${selected.id}`} className="btn btn-primary">
-                  View schedule →
-                </Link>
+          ) : selected ? (
+            <>
+              <div className="card">
+                {PHOTOS[selected.name] && (
+                  <div className={`card-photo${switching ? ' switching' : ''}`}>
+                    <img
+                      src={PHOTOS[selected.name]}
+                      alt={`${selected.name} meeting room`}
+                      loading="lazy"
+                      decoding="async"
+                    />
+                  </div>
+                )}
+                <div className={`card-text${switching ? ' switching' : ''}`}>
+                  <div className="room-name">{selected.name}</div>
+                  <div className="specs">
+                    <span>
+                      Capacity <b>{selected.capacity}</b>
+                    </span>
+                    <span>
+                      Floor <b>{selected.floor}</b>
+                    </span>
+                  </div>
+                  <div className="status">
+                    {open ? (
+                      <>Free now — office hours run 09:00–19:00 Kyiv.</>
+                    ) : (
+                      <>
+                        <span className="status-chip">Office closed</span>
+                        opens 09:00 Kyiv.
+                      </>
+                    )}
+                  </div>
+                  <Link to={`/rooms/${selected.id}`} className="btn-card">
+                    Book
+                  </Link>
+                </div>
               </div>
-            </div>
-          </div>
-        )}
-      </div>
 
-      {!open && <div className="office-closed mono">Office opens 09:00 Kyiv</div>}
+              <div className="nav-row">
+                <button type="button" className="wbtn" aria-label="Previous room" onClick={() => go(cur - 1)}>
+                  ‹
+                </button>
+                <div className="idx-row mono" ref={idxRowRef}>
+                  <div className="idx-track" />
+                  <div className="idx-fill" ref={idxFillRef} />
+                  {rooms.map((room, i) => (
+                    <button
+                      key={room.id}
+                      type="button"
+                      className={`idx${i === cur ? ' on' : ''}`}
+                      aria-label={`Show ${room.name}`}
+                      onClick={() => go(i)}
+                    >
+                      {String(i + 1).padStart(2, '0')}
+                    </button>
+                  ))}
+                </div>
+                <button type="button" className="wbtn" aria-label="Next room" onClick={() => go(cur + 1)}>
+                  ›
+                </button>
+              </div>
+            </>
+          ) : (
+            <div className="space-error">
+              <p>No rooms yet.</p>
+            </div>
+          )}
+        </div>
+      </section>
+
+      {/* footer: meridian terminus */}
+      <footer className="footer" ref={footerRef}>
+        <div className="footer-inner">
+          <div className="terminus" ref={terminusRef} />
+          <div className="logo">
+            <svg viewBox="0 0 52 52" fill="none" aria-hidden="true">
+              <circle cx="26" cy="26" r="21" stroke="#fff" strokeWidth="2.2" />
+              <path d="M26 26 Q 15 18 13 6" stroke="#fff" strokeWidth="2.4" strokeLinecap="round" fill="none" />
+            </svg>
+            Meridian
+          </div>
+          <div className="footer-links">
+            <Link to="/">Rooms</Link>
+            <Link to="/me">My bookings</Link>
+          </div>
+          <div className="footer-fine mono">Office hours run on Europe/Kyiv, every time.</div>
+        </div>
+      </footer>
     </div>
   );
 }
