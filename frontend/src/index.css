@@ -422,7 +422,7 @@ body.dark {
   position: absolute;
   inset: 0;
   border-radius: 50% 50% 0 0;
-  background: radial-gradient(ellipse at 50% 112%, #33406b 0%, #1b2544 36%, #0d1122 62%, #05060c 100%);
+  background: radial-gradient(ellipse at 50% 50%, #33406b 1%, #1b2544 20%, #0d1122 60%, #05060c 100%);
   -webkit-mask-image: linear-gradient(to bottom, transparent 0%, rgba(0, 0, 0, 0.55) 5%, #000 13%, #000 100%);
   mask-image: linear-gradient(to bottom, transparent 0%, rgba(0, 0, 0, 0.55) 5%, #000 13%, #000 100%);
 }
@@ -571,7 +571,7 @@ body.dark {
   inset: 0;
   left: -170px;
   right: -170px;
-  background: radial-gradient(ellipse 240px 100% at 50% 50%, rgba(224, 99, 26, 0.3), transparent 72%);
+  background: radial-gradient(ellipse 240px 70% at 50% 50%, rgba(224, 99, 26, 0.3), transparent 72%);
   filter: blur(24px);
 }
 /* glass card like the nav: the meridian + amber glow show through the blur */
