@@ -20,15 +20,24 @@ export function requireAuth(req: Request, res: Response, next: NextFunction): vo
     return;
   }
 
-  let sub: number;
+  let payload: { sub?: unknown };
   try {
-    sub = (jwt.verify(token, JWT_SECRET) as unknown as { sub: number }).sub;
+    // Explicit algorithm allowlist: without it, jsonwebtoken accepts any
+    // algorithm the token header declares (algorithm confusion, OWASP).
+    payload = jwt.verify(token, JWT_SECRET, { algorithms: ['HS256'] }) as { sub?: unknown };
   } catch {
     res.status(401).json({ message: 'Authentication required' });
     return;
   }
 
-  const user = selectUserById.get(sub) as AuthUser | undefined;
+  // Validate the payload shape instead of a blind double-cast: sub must be
+  // the integer user id we signed (jwt.sign({ sub: user.id }) in routes/auth.ts).
+  if (typeof payload.sub !== 'number' || !Number.isInteger(payload.sub)) {
+    res.status(401).json({ message: 'Authentication required' });
+    return;
+  }
+
+  const user = selectUserById.get(payload.sub) as AuthUser | undefined;
   if (!user) {
     res.status(401).json({ message: 'Authentication required' });
     return;
