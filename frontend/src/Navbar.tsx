@@ -1,4 +1,4 @@
-import { useEffect, useState, type MouseEvent } from 'react';
+import { useEffect, useRef, useState, type MouseEvent as ReactMouseEvent } from 'react';
 import { Link, NavLink, useLocation, useNavigate } from 'react-router-dom';
 import { toZonedTime } from 'date-fns-tz';
 import { useAuth } from './auth-context';
@@ -49,13 +49,38 @@ export default function Navbar() {
   const [now, setNow] = useState(() => new Date());
   const [menuOpen, setMenuOpen] = useState(false);
   const [pickerOpen, setPickerOpen] = useState(false);
+  const [userMenuOpen, setUserMenuOpen] = useState(false);
   useEffect(() => {
     const t = setInterval(() => setNow(new Date()), 15_000);
     return () => clearInterval(t);
   }, []);
 
-  // close the mobile menu on navigation
-  useEffect(() => setMenuOpen(false), [pathname]);
+  // close the mobile menu and the user menu on navigation
+  useEffect(() => {
+    setMenuOpen(false);
+    setUserMenuOpen(false);
+  }, [pathname]);
+
+  // Escape closes the user menu
+  useEffect(() => {
+    if (!userMenuOpen) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setUserMenuOpen(false);
+    };
+    document.addEventListener('keydown', onKey);
+    return () => document.removeEventListener('keydown', onKey);
+  }, [userMenuOpen]);
+
+  // click outside the user menu closes it (no backdrop element — the pill's
+  // backdrop-filter makes it a containing block for fixed descendants)
+  useEffect(() => {
+    if (!userMenuOpen) return;
+    const onDown = (e: MouseEvent) => {
+      if (!userWrapRef.current?.contains(e.target as Node)) setUserMenuOpen(false);
+    };
+    document.addEventListener('mousedown', onDown);
+    return () => document.removeEventListener('mousedown', onDown);
+  }, [userMenuOpen]);
 
   const kyiv = toZonedTime(now, OFFICE_TZ);
   const clock = `${String(kyiv.getHours()).padStart(2, '0')}:${String(kyiv.getMinutes()).padStart(2, '0')}`;
@@ -65,8 +90,10 @@ export default function Navbar() {
     navigate('/');
   };
 
+  const userWrapRef = useRef<HTMLDivElement>(null);
+
   // Rooms = home's room section: smooth-scroll there on home, otherwise navigate with a flag.
-  const onRoomsClick = (e: MouseEvent<HTMLAnchorElement>) => {
+  const onRoomsClick = (e: ReactMouseEvent<HTMLAnchorElement>) => {
     e.preventDefault();
     if (pathname === '/') {
       document.getElementById('rooms')?.scrollIntoView({ behavior: 'smooth' });
@@ -100,12 +127,26 @@ export default function Navbar() {
         <div className="right">
           <span className="clock mono">Kyiv {clock}</span>
           {user ? (
-            <div className="chip">
-              <div className="avatar">{user.name.charAt(0).toUpperCase()}</div>
-              <span className="chip-mail">{user.email}</span>
-              <button type="button" className="logout-btn" onClick={onLogout}>
-                Logout
+            <div className="user-wrap" ref={userWrapRef}>
+              <button
+                type="button"
+                className="avatar"
+                aria-label="Account menu"
+                aria-expanded={userMenuOpen}
+                aria-haspopup="menu"
+                onClick={() => setUserMenuOpen((o) => !o)}
+              >
+                {user.name.charAt(0).toUpperCase()}
               </button>
+              {userMenuOpen && (
+                <div className="user-panel" role="menu">
+                  <div className="user-email">{user.email}</div>
+                  <div className="user-divider" />
+                  <button type="button" className="user-logout" role="menuitem" onClick={onLogout}>
+                    Log out
+                  </button>
+                </div>
+              )}
             </div>
           ) : (
             <Link to="/login" className="btn btn-primary btn-sm">

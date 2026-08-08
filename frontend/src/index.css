@@ -459,18 +459,6 @@ body {
   color: var(--muted);
   background: rgba(15, 18, 32, 0.06);
 }
-.chip {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 12.5px;
-}
-.navbar.glass .chip {
-  color: #b7bbd4;
-}
-.navbar.light .chip {
-  color: var(--muted);
-}
 .avatar {
   width: 26px;
   height: 26px;
@@ -483,21 +471,87 @@ body {
   font-size: 11px;
   font-weight: 600;
   flex-shrink: 0;
-}
-.logout-btn {
   border: none;
-  background: none;
-  padding: 0;
-  font: inherit;
-  font-size: 12.5px;
   cursor: pointer;
-  text-decoration: underline;
+  padding: 0;
+  line-height: 1;
 }
-.navbar.glass .logout-btn {
+.user-wrap {
+  position: relative;
+  display: flex;
+}
+.user-panel {
+  position: absolute;
+  top: calc(100% + 10px);
+  right: 0;
+  z-index: 2;
+  min-width: 220px;
+  border-radius: 12px;
+  padding: 6px;
+  animation: rise-in 140ms ease-out;
+}
+/* same glass treatment as the nav pill, per variant */
+.navbar.glass .user-panel {
+  background: rgba(255, 255, 255, 0.09);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.5);
+}
+.navbar.light .user-panel {
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border: 1px solid rgba(15, 18, 32, 0.1);
+  box-shadow: 0 12px 32px rgba(15, 18, 32, 0.12);
+}
+.user-email {
+  font-size: 12px;
+  padding: 8px 10px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.navbar.glass .user-email {
   color: #b7bbd4;
 }
-.navbar.light .logout-btn {
-  color: var(--navy);
+.navbar.light .user-email {
+  color: var(--muted);
+}
+.user-divider {
+  height: 1px;
+  margin: 4px 0;
+}
+.navbar.glass .user-divider {
+  background: rgba(255, 255, 255, 0.14);
+}
+.navbar.light .user-divider {
+  background: var(--line);
+}
+.user-logout {
+  width: 100%;
+  border: none;
+  background: none;
+  border-radius: 8px;
+  padding: 9px 10px;
+  font: inherit;
+  font-size: 12.5px;
+  font-weight: 600;
+  cursor: pointer;
+  text-align: left;
+  transition: background 0.12s ease;
+}
+.navbar.glass .user-logout {
+  color: #fff;
+}
+.navbar.light .user-logout {
+  color: var(--ink);
+}
+.navbar.glass .user-logout:hover {
+  background: rgba(255, 255, 255, 0.08);
+}
+.navbar.light .user-logout:hover {
+  background: rgba(15, 18, 32, 0.05);
 }
 .btn-sm {
   padding: 6px 12px;
@@ -1643,9 +1697,6 @@ body.dark {
   }
   .navbar .clock {
     display: none; /* room for logo + avatar + burger on the pill */
-  }
-  .chip .chip-mail {
-    display: none; /* avatar + Logout stay; email returns on wider screens */
   }
   .grid-wrap {
     padding: 12px 14px 18px;
