@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { toZonedTime } from 'date-fns-tz';
 import { api, type Room } from './api';
+import { mountSparkles } from './sparkles';
 
 const OFFICE_TZ = 'Europe/Kyiv';
 const OFFICE_OPEN = 9;
@@ -36,6 +37,9 @@ export default function HomePage() {
   const vignetteRef = useRef<HTMLDivElement>(null);
   const roomsGlowRef = useRef<HTMLDivElement>(null);
   const terminusRef = useRef<HTMLDivElement>(null);
+  const heroInnerRef = useRef<HTMLDivElement>(null);
+  const roomsRevealRef = useRef<HTMLDivElement>(null);
+  const sparkleRef = useRef<HTMLCanvasElement>(null);
   const idxRowRef = useRef<HTMLDivElement>(null);
   const idxFillRef = useRef<HTMLDivElement>(null);
   const timerRef = useRef<number | undefined>(undefined);
@@ -56,6 +60,14 @@ export default function HomePage() {
   useEffect(() => {
     document.body.classList.add('dark');
     return () => document.body.classList.remove('dark');
+  }, []);
+
+  // sparkle field on the hero (Stardust port) — pauses off-screen, static under reduced motion
+  useEffect(() => {
+    const dispose = sparkleRef.current
+      ? mountSparkles(sparkleRef.current, { density: 2.2, minSize: 0.6, maxSize: 1.5, speed: 0.1 })
+      : undefined;
+    return () => dispose?.();
   }, []);
 
   useEffect(() => {
@@ -93,6 +105,8 @@ export default function HomePage() {
     const triangle = (x: number, center: number, halfWidth: number) =>
       Math.max(0, 1 - Math.abs(x - center) / halfWidth);
 
+    const clamp01 = (v: number) => Math.min(1, Math.max(0, v));
+
     const update = () => {
       ticking = false;
       const hero = heroRef.current;
@@ -115,6 +129,21 @@ export default function HomePage() {
       const seamY = hero.offsetTop + heroH;
       const seamProgress = triangle(scrollY + vh * 0.72, seamY, vh * 0.5);
       if (vignetteRef.current) vignetteRef.current.style.opacity = String(seamProgress * 0.9);
+
+      // hero text fades + shrinks as it leaves the viewport; rooms content fades + settles in
+      const heroInner = heroInnerRef.current;
+      const roomsReveal = roomsRevealRef.current;
+      if (heroInner && roomsReveal) {
+        const heroRect = heroInner.getBoundingClientRect();
+        const heroFade = clamp01((vh * 0.55 - heroRect.top) / (vh * 0.55));
+        heroInner.style.opacity = String(1 - heroFade);
+        heroInner.style.transform = `scale(${1 - heroFade * 0.08})`;
+
+        const revealRect = roomsReveal.getBoundingClientRect();
+        const roomsFade = clamp01((vh * 0.92 - revealRect.top) / (vh * 0.5));
+        roomsReveal.style.opacity = String(roomsFade);
+        roomsReveal.style.transform = `scale(${0.96 + roomsFade * 0.04}) translateY(${(1 - roomsFade) * 20}px)`;
+      }
 
       const glow = roomsGlowRef.current;
       if (glow) {
@@ -191,12 +220,14 @@ export default function HomePage() {
 
       {/* hero: dome arc, cool center glow, amber sunrise at the dome rim */}
       <section className="hero" ref={heroRef}>
+        <canvas className="sparkle-canvas" ref={sparkleRef} aria-hidden="true" />
         <div className="dome-layer" ref={domeRef}>
           <div className="dome-glow" ref={domeGlowRef} />
           <div className="dome" />
         </div>
         <div className="hero-sun" ref={heroSunRef} />
-        <div className="hero-inner">
+        <div className="grain" />
+        <div className="hero-inner" ref={heroInnerRef}>
           <span className="badge mono">
             {rooms.length} meeting rooms · Office time Europe/Kyiv
           </span>
@@ -224,7 +255,8 @@ export default function HomePage() {
       <section className="rooms" ref={roomsRef}>
         <div className="rooms-glow" ref={roomsGlowRef} />
         <div className="rooms-inner">
-          <div className="rooms-head">
+          <div className="rooms-reveal" ref={roomsRevealRef}>
+            <div className="rooms-head">
             <span className="label">Rooms</span>
             <span className="count mono">
               {error ? '' : `${String(cur + 1).padStart(2, '0')} / ${String(rooms.length).padStart(2, '0')}`}
@@ -307,6 +339,7 @@ export default function HomePage() {
               <p>No rooms yet.</p>
             </div>
           )}
+          </div>
         </div>
       </section>
 
