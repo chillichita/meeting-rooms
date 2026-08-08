@@ -1,7 +1,8 @@
-import { useEffect, useState, type FormEvent } from 'react';
+import { useEffect, useRef, useState, type FormEvent } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { api, ApiError } from './api';
 import { useAuth } from './auth-context';
+import { mountSparkles } from './sparkles';
 
 type Mode = 'login' | 'register';
 
@@ -20,6 +21,19 @@ export default function LoginPage() {
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
   const [formError, setFormError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  const sparkleRef = useRef<HTMLCanvasElement>(null);
+
+  // Dark backdrop + sparkle field (info/design/dark_theme login demo).
+  useEffect(() => {
+    document.body.classList.add('dark');
+    const dispose = sparkleRef.current
+      ? mountSparkles(sparkleRef.current, { density: 2.4, minSize: 0.6, maxSize: 1.6, speed: 0.1 })
+      : undefined;
+    return () => {
+      dispose?.();
+      document.body.classList.remove('dark');
+    };
+  }, []);
 
   // Already signed in — nothing to do on this page.
   useEffect(() => {
@@ -32,28 +46,28 @@ export default function LoginPage() {
     setFormError(null);
   };
 
-  const validate = (): Record<string, string> => {
+  const validate = (m: Mode): Record<string, string> => {
     const errors: Record<string, string> = {};
-    if (mode === 'register' && !name.trim()) errors.name = 'Enter your name.';
+    if (m === 'register' && !name.trim()) errors.name = 'Enter your name.';
     if (!EMAIL_RE.test(email.trim())) errors.email = 'Enter a valid email address.';
     if (!password) {
       errors.password = 'Password is required';
-    } else if (mode === 'register' && (password.length < 8 || password.length > 72)) {
+    } else if (m === 'register' && (password.length < 8 || password.length > 72)) {
       errors.password = 'Password must be 8–72 characters.';
     }
     return errors;
   };
 
-  const submit = async (e: FormEvent) => {
+  const submit = async (e: FormEvent, m: Mode) => {
     e.preventDefault();
-    const errors = validate();
+    const errors = validate(m);
     setFieldErrors(errors);
     setFormError(null);
     if (Object.keys(errors).length > 0) return;
 
     setSubmitting(true);
     try {
-      if (mode === 'register') {
+      if (m === 'register') {
         await api('/api/auth/register', {
           method: 'POST',
           body: JSON.stringify({ name: name.trim(), email: email.trim(), password }),
@@ -84,11 +98,103 @@ export default function LoginPage() {
     }
   };
 
+  const fields = (m: Mode) => (
+    <>
+      {m === 'register' && (
+        <div className="field">
+          <label className="lbl" htmlFor="name">
+            Name
+          </label>
+          <input
+            id="name"
+            className="input"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            autoComplete="name"
+            placeholder="Alice Smith"
+          />
+          {fieldErrors.name && <div className="err">{fieldErrors.name}</div>}
+        </div>
+      )}
+
+      <div className="field">
+        <label className="lbl" htmlFor="email">
+          Email
+        </label>
+        <input
+          id="email"
+          type="email"
+          className="input"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          autoComplete="email"
+          placeholder="you@gmail.com"
+        />
+        {fieldErrors.email && <div className="err">{fieldErrors.email}</div>}
+      </div>
+
+      <div className="field">
+        <label className="lbl" htmlFor="password">
+          Password
+        </label>
+        <input
+          id="password"
+          type="password"
+          className="input"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          autoComplete={m === 'register' ? 'new-password' : 'current-password'}
+          aria-describedby={m === 'register' ? 'pw-hint' : undefined}
+          placeholder="••••••••"
+        />
+        {fieldErrors.password && <div className="err">{fieldErrors.password}</div>}
+        {m === 'register' && !fieldErrors.password && (
+          <div className="hint" id="pw-hint">
+            Create a password that is between 8 and 72 characters long.
+          </div>
+        )}
+      </div>
+
+      {mode === m && formError && <div className="form-error">{formError}</div>}
+
+      <button type="submit" className="btn btn-primary" disabled={submitting}>
+        {submitting
+          ? m === 'login'
+            ? 'Logging in…'
+            : 'Creating account…'
+          : m === 'login'
+            ? 'Log in'
+            : 'Create account'}
+      </button>
+    </>
+  );
+
   return (
     <div className="auth-stage">
+      <div className="auth-scene">
+        <canvas ref={sparkleRef} className="sparkle-canvas" aria-hidden="true" />
+        <div className="glow-amber" />
+        <div className="glow-navy" />
+        <div className="glow-accent" />
+        <div className="grain" />
+      </div>
+
       <div className="auth-card">
+        <div className="auth-brand">
+          <svg viewBox="0 0 52 52" fill="none" aria-hidden="true">
+            <circle cx="26" cy="26" r="21" stroke="#fff" strokeWidth="2.2" />
+            <path d="M26 26 Q 15 18 13 6" stroke="#fff" strokeWidth="2.4" strokeLinecap="round" fill="none" />
+          </svg>
+          Meridian
+        </div>
+
         <div className="auth-tabs" role="tablist">
-          <button type="button" className={mode === 'login' ? 'on' : ''} onClick={() => switchMode('login')}>
+          <div className="tab-fill" style={{ left: mode === 'login' ? '4px' : 'calc(50% + 0px)' }} />
+          <button
+            type="button"
+            className={mode === 'login' ? 'on' : ''}
+            onClick={() => switchMode('login')}
+          >
             Log in
           </button>
           <button
@@ -100,71 +206,34 @@ export default function LoginPage() {
           </button>
         </div>
 
-        <form key={mode} onSubmit={submit} noValidate>
-          {mode === 'register' && (
-            <div className="field">
-              <label className="lbl" htmlFor="name">
-                Name
-              </label>
-              <input
-                id="name"
-                className="input"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                autoComplete="name"
-              />
-              {fieldErrors.name && <div className="err">{fieldErrors.name}</div>}
+        <div className="panels">
+          <div className={`panel-grid${mode === 'login' ? ' on' : ''}`}>
+            <div className="panel-inner">
+              <form onSubmit={(e) => submit(e, 'login')} noValidate>
+                {fields('login')}
+                <div className="auth-foot">
+                  No account?{' '}
+                  <button type="button" className="auth-link" onClick={() => switchMode('register')}>
+                    Register
+                  </button>
+                </div>
+              </form>
             </div>
-          )}
-
-          <div className="field">
-            <label className="lbl" htmlFor="email">
-              Email
-            </label>
-            <input
-              id="email"
-              type="email"
-              className="input"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              autoComplete="email"
-            />
-            {fieldErrors.email && <div className="err">{fieldErrors.email}</div>}
           </div>
-
-          <div className="field">
-            <label className="lbl" htmlFor="password">
-              Password
-            </label>
-            <input
-              id="password"
-              type="password"
-              className="input"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              autoComplete={mode === 'register' ? 'new-password' : 'current-password'}
-              aria-describedby={mode === 'register' ? 'pw-hint' : undefined}
-            />
-            {fieldErrors.password && <div className="err">{fieldErrors.password}</div>}
-            {mode === 'register' && !fieldErrors.password && (
-              <div className="hint" id="pw-hint">
-                Create a password that is between 8 and 72 characters long.
-              </div>
-            )}
+          <div className={`panel-grid${mode === 'register' ? ' on' : ''}`}>
+            <div className="panel-inner">
+              <form onSubmit={(e) => submit(e, 'register')} noValidate>
+                {fields('register')}
+                <div className="auth-foot">
+                  Already have an account?{' '}
+                  <button type="button" className="auth-link" onClick={() => switchMode('login')}>
+                    Log in
+                  </button>
+                </div>
+              </form>
+            </div>
           </div>
-
-          {formError && <div className="form-error">{formError}</div>}
-
-          <button type="submit" className="btn btn-primary" disabled={submitting}>
-            {submitting
-              ? mode === 'login'
-                ? 'Logging in…'
-                : 'Creating account…'
-              : mode === 'login'
-                ? 'Log in'
-                : 'Create account'}
-          </button>
-        </form>
+        </div>
       </div>
     </div>
   );
