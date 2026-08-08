@@ -5,6 +5,8 @@ import path from 'node:path';
 import request from 'supertest';
 import type { Express } from 'express';
 import type Database from 'better-sqlite3';
+import jwt from 'jsonwebtoken';
+import { JWT_SECRET } from '../config.js';
 
 const dir = mkdtempSync(path.join(tmpdir(), 'mr-auth-test-'));
 process.env.DB_PATH = path.join(dir, 'test.db');
@@ -101,5 +103,19 @@ describe('session lifecycle', () => {
     await agent.post('/api/auth/logout').expect(204);
     const after = await agent.get('/api/auth/me');
     expect(after.status).toBe(401);
+  });
+
+  it('rejects an expired token', async () => {
+    const expired = jwt.sign({ sub: 1 }, JWT_SECRET, { expiresIn: -10 });
+    const res = await request(app).get('/api/auth/me').set('Cookie', `token=${expired}`);
+    expect(res.status).toBe(401);
+  });
+
+  it('rejects a token with a tampered payload', async () => {
+    const token = jwt.sign({ sub: 1 }, JWT_SECRET);
+    const [h, , s] = token.split('.');
+    const tampered = `${h}.${Buffer.from(JSON.stringify({ sub: 999 })).toString('base64url')}.${s}`;
+    const res = await request(app).get('/api/auth/me').set('Cookie', `token=${tampered}`);
+    expect(res.status).toBe(401);
   });
 });

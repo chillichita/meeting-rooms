@@ -106,8 +106,23 @@ describe('GET /api/rooms/:id/bookings', () => {
     expect(res.status).toBe(400);
   });
 
+  it('rejects a non-numeric room id with 400', async () => {
+    const res = await request(app).get('/api/rooms/abc/bookings').query({ week: ymd(TOMORROW) });
+    expect(res.status).toBe(400);
+  });
+
   it('rejects a malformed week date', async () => {
     const res = await request(app).get('/api/rooms/1/bookings').query({ week: '2026-02-30' });
+    expect(res.status).toBe(400);
+  });
+});
+
+describe('malformed request bodies', () => {
+  it('rejects broken JSON with 400, not 500', async () => {
+    const res = await request(app)
+      .post('/api/auth/login')
+      .set('Content-Type', 'application/json')
+      .send('{');
     expect(res.status).toBe(400);
   });
 });

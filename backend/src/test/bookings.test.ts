@@ -177,6 +177,12 @@ describe('DELETE /api/bookings/:id', () => {
     expect(res.status).toBe(404);
   });
 
+  it('rejects a non-numeric id with 400', async () => {
+    const agent = await login('alice@example.com', 'alice12345');
+    const res = await agent.delete('/api/bookings/abc');
+    expect(res.status).toBe(400);
+  });
+
   it('requires authentication', async () => {
     const res = await request(app).delete('/api/bookings/1');
     expect(res.status).toBe(401);

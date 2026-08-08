@@ -41,6 +41,10 @@ describe('validateDuration', () => {
     expect(validateDuration(slot(9), slot(13, 30))).toMatch(/at most 4 hours/);
   });
 
+  it('rejects a 15-minute booking', () => {
+    expect(validateDuration(slot(10, 15), slot(10, 30))).toMatch(/at least 30 minutes/);
+  });
+
   it('rejects end equal to start', () => {
     expect(validateDuration(slot(10), slot(10))).toMatch(/after start/);
   });
