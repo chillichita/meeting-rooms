@@ -1,5 +1,5 @@
 import { Fragment, useCallback, useEffect, useState } from 'react';
-import { useLocation, useNavigate, useParams, useSearchParams } from 'react-router-dom';
+import { Navigate, useLocation, useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { addDays, format, isToday } from 'date-fns';
 import { getTimezoneOffset } from 'date-fns-tz';
 import { api, type Booking, type Room } from './api';
@@ -84,6 +84,12 @@ export default function RoomPage() {
   useEffect(() => {
     load();
   }, [load]);
+
+  // After all hooks: /rooms/abc (or a bare /rooms/) must not reach the API as
+  // /api/rooms/NaN/bookings — redirect to the room list instead.
+  if (!Number.isFinite(roomId)) {
+    return <Navigate to="/" replace />;
+  }
 
   const slots = officeSlots(monday);
   const days = weekDays(monday);
