@@ -89,8 +89,11 @@ export default function RoomPage() {
     for (const b of bookings) {
       const start = new Date(b.start_at);
       const end = new Date(b.end_at);
-      const dayIdx = (start.getDay() + 6) % 7; // 0 = Monday
-      // slot index within that day's working hours (firstSlot = Monday 09:00)
+      // Day column from the UTC anchor (firstSlot = Monday 09:00 Kyiv), not the
+      // browser's local getDay(): for users far west/east of Kyiv the office day
+      // straddles their local midnight, and local day indexes would drop the
+      // first/last hours of each day off the grid.
+      const dayIdx = Math.floor((start.getTime() - firstSlot.getTime()) / (24 * 60 * 60_000));
       const dayStart = firstSlot.getTime() + dayIdx * 24 * 60 * 60_000;
       const startIdx = Math.round((start.getTime() - dayStart) / SLOT_MS);
       const endIdx = Math.round((end.getTime() - dayStart) / SLOT_MS);
@@ -105,7 +108,7 @@ export default function RoomPage() {
 
   // S1 — amber now-line, continuous within the current 30-min slot (Google
   // Calendar style): gridRow pins the slot, translateY places it inside it.
-  const nowDayIdx = (now.getDay() + 6) % 7;
+  const nowDayIdx = firstSlot ? Math.floor((now.getTime() - firstSlot.getTime()) / (24 * 60 * 60_000)) : -1;
   const nowDayStart = firstSlot ? firstSlot.getTime() + nowDayIdx * 24 * 60 * 60_000 : 0;
   const nowLineIdx = firstSlot ? Math.floor((now.getTime() - nowDayStart) / SLOT_MS) : -1;
   const slotFrac = firstSlot
