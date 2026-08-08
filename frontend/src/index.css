@@ -576,7 +576,7 @@ body.dark {
   width: 100%;
   height: 100%;
   pointer-events: none;
-  z-index: 2;
+  z-index: 3; /* above the static vignette so the line stays continuous through the hero/rooms seam */
   overflow: visible;
 }
 .meridian-path {
@@ -736,12 +736,11 @@ body.dark {
   left: 0;
   right: 0;
   bottom: 0;
-  height: 260px;
+  height: 200px;
   z-index: 2;
   pointer-events: none;
   background: linear-gradient(to bottom, transparent, var(--space-2) 92%);
-  opacity: 0;
-  will-change: opacity;
+  opacity: 1;
 }
 
 /* ---- rooms ---- */

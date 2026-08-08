@@ -126,10 +126,6 @@ export default function HomePage() {
       if (domeGlowRef.current) domeGlowRef.current.style.opacity = String(0.7 + heroProgress * 0.3);
       if (heroSunRef.current) heroSunRef.current.style.opacity = String(0.8 + heroProgress * 0.2);
 
-      const seamY = hero.offsetTop + heroH;
-      const seamProgress = triangle(scrollY + vh * 0.72, seamY, vh * 0.5);
-      if (vignetteRef.current) vignetteRef.current.style.opacity = String(seamProgress * 0.9);
-
       // hero text fades + shrinks as it leaves the viewport; rooms content fades + settles in
       const heroInner = heroInnerRef.current;
       const roomsReveal = roomsRevealRef.current;
