@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Link, NavLink, useLocation, useNavigate } from 'react-router-dom';
 import { toZonedTime } from 'date-fns-tz';
 import { useAuth } from './auth-context';
+import RoomPickerModal from './RoomPickerModal';
 
 const OFFICE_TZ = 'Europe/Kyiv';
 
@@ -40,13 +41,14 @@ export default function Navbar() {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
   const { pathname } = useLocation();
-  // Rooms covers both "/" (the picker) and "/rooms/:id" (the schedule).
-  const roomsActive = pathname === '/' || pathname.startsWith('/rooms');
+  // Home covers "/" (the picker); Schedule covers "/rooms/:id" (the schedule).
+  const scheduleActive = pathname.startsWith('/rooms');
   // Home is the dark space canvas — the pill turns dark glass there, light elsewhere.
   const glass = pathname === '/';
 
   const [now, setNow] = useState(() => new Date());
   const [menuOpen, setMenuOpen] = useState(false);
+  const [pickerOpen, setPickerOpen] = useState(false);
   useEffect(() => {
     const t = setInterval(() => setNow(new Date()), 15_000);
     return () => clearInterval(t);
@@ -71,9 +73,16 @@ export default function Navbar() {
           Meridian
         </Link>
         <nav>
-          <NavLink to="/" className={roomsActive ? 'active' : ''}>
+          <NavLink to="/" className={pathname === '/' ? 'active' : ''}>
             Rooms
           </NavLink>
+          <button
+            type="button"
+            className={`navlink${scheduleActive ? ' active' : ''}`}
+            onClick={() => setPickerOpen(true)}
+          >
+            Schedule
+          </button>
           <NavLink to="/me" className={({ isActive }) => (isActive ? 'active' : '')}>
             My bookings
           </NavLink>
@@ -113,10 +122,22 @@ export default function Navbar() {
         <Link to="/" onClick={() => setMenuOpen(false)}>
           Rooms
         </Link>
+        <button
+          type="button"
+          className="navlink"
+          onClick={() => {
+            setMenuOpen(false);
+            setPickerOpen(true);
+          }}
+        >
+          Schedule
+        </button>
         <Link to="/me" onClick={() => setMenuOpen(false)}>
           My bookings
         </Link>
       </div>
+
+      <RoomPickerModal open={pickerOpen} onClose={() => setPickerOpen(false)} />
     </>
   );
 }
