@@ -95,7 +95,9 @@ router.post('/login', (req, res) => {
   res.cookie('token', token, {
     httpOnly: true,
     sameSite: 'lax',
-    secure: false, // dev over http; set true behind https
+    // Secure only behind HTTPS: dev runs over plain http on localhost, where
+    // Secure cookies would not be sent by the browser.
+    secure: process.env.NODE_ENV === 'production',
     maxAge: COOKIE_MAX_AGE,
   });
   res.json({ id: user.id, name: user.name, email: user.email });
