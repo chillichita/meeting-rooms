@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, type MouseEvent } from 'react';
 import { Link, NavLink, useLocation, useNavigate } from 'react-router-dom';
 import { toZonedTime } from 'date-fns-tz';
 import { useAuth } from './auth-context';
@@ -65,6 +65,16 @@ export default function Navbar() {
     navigate('/');
   };
 
+  // Rooms = home's room section: smooth-scroll there on home, otherwise navigate with a flag.
+  const onRoomsClick = (e: MouseEvent<HTMLAnchorElement>) => {
+    e.preventDefault();
+    if (pathname === '/') {
+      document.getElementById('rooms')?.scrollIntoView({ behavior: 'smooth' });
+    } else {
+      navigate('/', { state: { scrollToRooms: true } });
+    }
+  };
+
   return (
     <>
       <header className={`navbar${glass ? ' glass' : ' light'}`}>
@@ -73,9 +83,9 @@ export default function Navbar() {
           Meridian
         </Link>
         <nav>
-          <NavLink to="/" className={pathname === '/' ? 'active' : ''}>
+          <Link to="/" className={pathname === '/' ? 'active' : ''} onClick={onRoomsClick}>
             Rooms
-          </NavLink>
+          </Link>
           <button
             type="button"
             className={`navlink${scheduleActive ? ' active' : ''}`}
@@ -119,7 +129,13 @@ export default function Navbar() {
         <button type="button" className="close" aria-label="Close menu" onClick={() => setMenuOpen(false)}>
           ✕
         </button>
-        <Link to="/" onClick={() => setMenuOpen(false)}>
+        <Link
+          to="/"
+          onClick={(e) => {
+            setMenuOpen(false);
+            onRoomsClick(e);
+          }}
+        >
           Rooms
         </Link>
         <button

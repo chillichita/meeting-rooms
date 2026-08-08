@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { toZonedTime } from 'date-fns-tz';
 import { api, type Room } from './api';
 import { mountSparkles } from './sparkles';
@@ -19,6 +19,7 @@ const PHOTOS: Record<string, string> = {
 };
 
 export default function HomePage() {
+  const location = useLocation();
   const [rooms, setRooms] = useState<Room[]>([]);
   const [error, setError] = useState(false);
   const [cur, setCur] = useState(0);
@@ -55,6 +56,14 @@ export default function HomePage() {
   };
 
   useEffect(load, []);
+
+  // nav "Rooms" arrives with a flag → land on the rooms section instead of the hero
+  useEffect(() => {
+    const state = location.state as { scrollToRooms?: boolean } | null;
+    if (state?.scrollToRooms) {
+      roomsRef.current?.scrollIntoView({ behavior: 'smooth' });
+    }
+  }, [location.state]);
 
   // the hero canvas is dark full-bleed; keep the strip behind the floating nav dark too
   useEffect(() => {
@@ -248,7 +257,7 @@ export default function HomePage() {
       </section>
 
       {/* rooms: one glass card at a time, fed by the meridian */}
-      <section className="rooms" ref={roomsRef}>
+      <section className="rooms" id="rooms" ref={roomsRef}>
         <div className="rooms-glow" ref={roomsGlowRef} />
         <div className="rooms-inner">
           {/* reveal choreography lives on the head + nav only — the card stays outside
