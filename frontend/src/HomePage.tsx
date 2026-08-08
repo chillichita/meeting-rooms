@@ -255,23 +255,32 @@ export default function HomePage() {
       <section className="rooms" ref={roomsRef}>
         <div className="rooms-glow" ref={roomsGlowRef} />
         <div className="rooms-inner">
+          {/* reveal choreography lives on the head + nav only — the card stays outside
+              the animated wrapper so its backdrop-filter still blurs the meridian behind it */}
           <div className="rooms-reveal" ref={roomsRevealRef}>
             <div className="rooms-head">
-            <span className="label">Rooms</span>
-            <span className="count mono">
-              {error ? '' : `${String(cur + 1).padStart(2, '0')} / ${String(rooms.length).padStart(2, '0')}`}
-            </span>
+              <span className="label">Rooms</span>
+              <span className="count mono">
+                {error ? '' : `${String(cur + 1).padStart(2, '0')} / ${String(rooms.length).padStart(2, '0')}`}
+              </span>
+            </div>
+
+            {error ? (
+              <div className="space-error">
+                <p>Couldn't load the rooms.</p>
+                <p className="sub">The server may be temporarily unavailable.</p>
+                <button type="button" className="btn btn-ghost-d" onClick={load}>
+                  Try again
+                </button>
+              </div>
+            ) : selected ? null : (
+              <div className="space-error">
+                <p>No rooms yet.</p>
+              </div>
+            )}
           </div>
 
-          {error ? (
-            <div className="space-error">
-              <p>Couldn't load the rooms.</p>
-              <p className="sub">The server may be temporarily unavailable.</p>
-              <button type="button" className="btn btn-ghost-d" onClick={load}>
-                Try again
-              </button>
-            </div>
-          ) : selected ? (
+          {selected && !error && (
             <>
               <div className="card">
                 {PHOTOS[selected.name] && (
@@ -334,12 +343,7 @@ export default function HomePage() {
                 </button>
               </div>
             </>
-          ) : (
-            <div className="space-error">
-              <p>No rooms yet.</p>
-            </div>
           )}
-          </div>
         </div>
       </section>
 
