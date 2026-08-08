@@ -25,7 +25,14 @@ export default function RoomPage() {
   const [searchParams] = useSearchParams();
   const [monday, setMonday] = useState(() => {
     const week = searchParams.get('week'); // deep link from My bookings
-    return week ? mondayOf(new Date(week)) : mondayOf(new Date());
+    if (week) {
+      // Parse the date parts locally, not via new Date('YYYY-MM-DD') (UTC
+      // midnight): for browsers west of UTC that instant falls on the previous
+      // day and mondayOf() would land on the wrong week.
+      const [y, m, d] = week.split('-').map(Number);
+      return mondayOf(new Date(y, m - 1, d));
+    }
+    return mondayOf(new Date());
   });
   const [room, setRoom] = useState<Room | null>(null);
   const [bookings, setBookings] = useState<Booking[]>([]);
