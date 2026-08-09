@@ -44,4 +44,9 @@ db.exec(`
     user_id INTEGER NOT NULL REFERENCES users(id),
     expires_at TEXT NOT NULL
   );
+
+  CREATE TABLE IF NOT EXISTS notifications (
+    booking_id INTEGER PRIMARY KEY REFERENCES bookings(id) ON DELETE CASCADE,
+    sent_at TEXT NOT NULL
+  );
 `);

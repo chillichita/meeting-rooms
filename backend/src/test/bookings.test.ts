@@ -142,6 +142,13 @@ describe('email verification gate', () => {
   });
 });
 
+describe('GET /api/bookings/notifications', () => {
+  it('requires authentication', async () => {
+    const res = await request(app).get('/api/bookings/notifications');
+    expect(res.status).toBe(401);
+  });
+});
+
 describe('GET /api/bookings', () => {
   it('requires authentication', async () => {
     const res = await request(app).get('/api/bookings');

@@ -3,6 +3,7 @@ import { z } from 'zod';
 import { db } from '../db.js';
 import { requireAuth, type AuthedRequest } from '../middleware/auth.js';
 import { createBooking, BookingError } from '../services/bookingService.js';
+import { dueNotifications } from '../services/notificationService.js';
 
 const createBookingSchema = z.object({
   roomId: z.number({ error: 'Room is required' }).int().positive(),
@@ -34,6 +35,12 @@ router.use(requireAuth); // both endpoints need a session
 
 router.get('/', (req, res) => {
   res.json(listMine.all((req as unknown as AuthedRequest).user.id));
+});
+
+// In-app notifications: the frontend polls this; the window (N minutes before
+// a booking's end, next slot in the room taken) is evaluated on live data.
+router.get('/notifications', (req, res) => {
+  res.json(dueNotifications((req as unknown as AuthedRequest).user.id, new Date().toISOString()));
 });
 
 router.post('/', (req, res) => {
