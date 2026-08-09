@@ -13,6 +13,8 @@ export default function LoginPage() {
   const navigate = useNavigate();
   const [params] = useSearchParams();
   const next = params.get('next') ?? '/';
+  // Set by the /api/auth/verify redirect after a successful email click.
+  const verified = params.get('verified') === '1';
 
   const [mode, setMode] = useState<Mode>('login');
   const [name, setName] = useState('');
@@ -20,6 +22,7 @@ export default function LoginPage() {
   const [password, setPassword] = useState('');
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
   const [formError, setFormError] = useState<string | null>(null);
+  const [notice, setNotice] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const sparkleRef = useRef<HTMLCanvasElement>(null);
 
@@ -72,11 +75,12 @@ export default function LoginPage() {
           method: 'POST',
           body: JSON.stringify({ name: name.trim(), email: email.trim(), password }),
         });
-        // register doesn't set the session cookie — sign in right after.
-        await api('/api/auth/login', {
-          method: 'POST',
-          body: JSON.stringify({ email: email.trim(), password }),
-        });
+        // No auto-login: the account starts unverified. The verify link is
+        // printed to the server log (dev-mode email); the user confirms and
+        // then logs in.
+        setMode('login');
+        setNotice('Account created! Check the server log for the verification link, then log in.');
+        return;
       } else {
         await api('/api/auth/login', {
           method: 'POST',
@@ -206,7 +210,12 @@ export default function LoginPage() {
           </button>
         </div>
 
-        <div className="panels">
+        {verified && (
+        <div className="form-ok">Email verified — you can log in now.</div>
+      )}
+      {notice && <div className="form-ok">{notice}</div>}
+
+      <div className="panels">
           <div className={`panel-grid${mode === 'login' ? ' on' : ''}`}>
             <div className="panel-inner">
               <form onSubmit={(e) => submit(e, 'login')} noValidate>
