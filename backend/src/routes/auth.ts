@@ -6,6 +6,7 @@ import { SqliteError } from 'better-sqlite3';
 import { db } from '../db.js';
 import { JWT_SECRET } from '../config.js';
 import { requireAuth, type AuthedRequest } from '../middleware/auth.js';
+import { authLimiter } from '../middleware/rateLimit.js';
 
 const registerSchema = z.object({
   name: z.string({ error: 'Enter your name.' }).trim().min(1, 'Enter your name.'),
@@ -41,7 +42,7 @@ const COOKIE_MAX_AGE = 7 * 24 * 60 * 60 * 1000; // 7 days
 
 const router = Router();
 
-router.post('/register', (req, res) => {
+router.post('/register', authLimiter, (req, res) => {
   const parsed = registerSchema.safeParse(req.body);
   if (!parsed.success) {
     const issue = parsed.error.issues[0];
@@ -70,7 +71,7 @@ router.post('/register', (req, res) => {
   res.status(201).json(selectUser.get(userId));
 });
 
-router.post('/login', (req, res) => {
+router.post('/login', authLimiter, (req, res) => {
   const parsed = loginSchema.safeParse(req.body);
   if (!parsed.success) {
     const issue = parsed.error.issues[0];
