@@ -805,8 +805,8 @@ body.dark {
   pointer-events: none;
   background: radial-gradient(
     circle,
-    rgba(238, 235, 233, 0.886) 6%,
-    rgb(224 160 26 / 65%) 10%, 
+    rgba(238, 235, 233, 0.9) 6%,
+    rgb(224 160 26 / 85%) 10%, 
     rgba(224, 99, 26, 0.22) 40%, 
     transparent 68%
     );
