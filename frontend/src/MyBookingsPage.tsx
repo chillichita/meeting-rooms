@@ -309,7 +309,11 @@ export default function MyBookingsPage() {
         </div>
       )}
 
-      {toast && <div className="toast">{toast}</div>}
+      {toast && (
+        <div className="toast" onClick={() => setToast(null)}>
+          {toast}
+        </div>
+      )}
     </div>
   );
 }

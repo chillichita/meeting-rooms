@@ -41,7 +41,7 @@ export default function RoomPage() {
   const [now, setNow] = useState(() => new Date());
   const [bookingStart, setBookingStart] = useState<Date | null>(null);
   const [confirmBooking, setConfirmBooking] = useState<Booking | null>(null);
-  const [toast, setToast] = useState<string | null>(null);
+  const [toast, setToast] = useState<{ text: string; kind?: 'success' } | null>(null);
   const [highlightId, setHighlightId] = useState<number | null>(() => {
     const hl = searchParams.get('hl'); // deep link from My bookings
     return hl ? Number(hl) : null;
@@ -147,7 +147,7 @@ export default function RoomPage() {
     if (!confirmBooking) return;
     try {
       await api(`/api/bookings/${confirmBooking.id}`, { method: 'DELETE' });
-      setToast('Booking cancelled.');
+      setToast({ text: 'Booking cancelled.' });
       setConfirmBooking(null);
       load();
     } catch {
@@ -334,7 +334,7 @@ export default function RoomPage() {
           initialStart={bookingStart}
           onClose={() => setBookingStart(null)}
           onCreated={(created) => {
-            setToast('Booking created.');
+            setToast({ text: 'Booking created.', kind: 'success' });
             setBookingStart(null);
             setHighlightId(created.id);
             load();
@@ -368,7 +368,14 @@ export default function RoomPage() {
         </div>
       )}
 
-      {toast && <div className="toast">{toast}</div>}
+      {toast && (
+        <div
+          className={`toast${toast.kind ? ` ${toast.kind}` : ''}`}
+          onClick={() => setToast(null)}
+        >
+          {toast.text}
+        </div>
+      )}
     </div>
   );
 }
