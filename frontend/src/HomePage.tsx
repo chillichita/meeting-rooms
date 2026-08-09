@@ -139,8 +139,9 @@ export default function HomePage() {
       const heroInner = heroInnerRef.current;
       const roomsReveal = roomsRevealRef.current;
       if (heroInner && roomsReveal) {
-        const heroRect = heroInner.getBoundingClientRect();
-        const heroFade = clamp01((vh * 0.55 - heroRect.top) / (vh * 0.55));
+        // hero text fades with scroll progress, not absolute viewport position —
+        // the demo formula dimmed the headline at rest on most screens
+        const heroFade = clamp01(scrollY / (vh * 0.6));
         heroInner.style.opacity = String(1 - heroFade);
         heroInner.style.transform = `scale(${1 - heroFade * 0.08})`;
 
