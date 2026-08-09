@@ -36,6 +36,7 @@ beforeAll(async () => {
   app = (await import('../app.js')).app;
 
   db.prepare("INSERT INTO rooms (name, floor, capacity) VALUES ('Mercury', 2, 6)").run();
+  db.prepare("INSERT INTO rooms (name, floor, capacity) VALUES ('Saturn', 1, 12)").run();
   db.prepare(
     'INSERT INTO users (name, email, password_hash, email_verified) VALUES (?, ?, ?, 1)'
   ).run('Alice', 'alice@example.com', bcrypt.hashSync('alice12345', 10));
@@ -146,6 +147,117 @@ describe('GET /api/bookings/notifications', () => {
   it('requires authentication', async () => {
     const res = await request(app).get('/api/bookings/notifications');
     expect(res.status).toBe(401);
+  });
+});
+
+describe('recurring series (API)', () => {
+  // All series tests use room 2 (Saturn) so their weekly slots never collide
+  // with the room-1 fixtures of the other describes.
+  const S = (h: number, endH: number, title: string) => ({ ...BODY(h, endH, title), roomId: 2 });
+
+  it('creates a weekly series from repeatCount', async () => {
+    const agent = await login('alice@example.com', 'alice12345');
+    const res = await agent
+      .post('/api/bookings')
+      .send({ ...S(13, 14, 'Weekly sync'), repeatCount: 3 });
+    expect(res.status).toBe(201);
+    expect(res.body.series_id).toBeTruthy();
+
+    const mine = await agent.get('/api/bookings');
+    const rows = mine.body.filter((b: { title: string }) => b.title === 'Weekly sync');
+    expect(rows).toHaveLength(3);
+    const ids = new Set(rows.map((b: { series_id: string | null }) => b.series_id));
+    expect(ids.size).toBe(1);
+    expect(ids.has(null)).toBe(false);
+  });
+
+  it('rejects a series whose later instance conflicts — nothing is created', async () => {
+    const agent = await login('alice@example.com', 'alice12345');
+    // Block the same slot next week via SQL.
+    const nextWeek = new Date(TOMORROW);
+    nextWeek.setDate(nextWeek.getDate() + 7);
+    const start = fromZonedTime(
+      new Date(nextWeek.getFullYear(), nextWeek.getMonth(), nextWeek.getDate(), 14),
+      'Europe/Kyiv',
+    ).toISOString();
+    db.prepare(
+      'INSERT INTO bookings (user_id, room_id, title, start_at, end_at) VALUES (1, 2, ?, ?, ?)'
+    ).run('Series blocker', start, new Date(new Date(start).getTime() + 3_600_000).toISOString());
+
+    const res = await agent
+      .post('/api/bookings')
+      .send({ ...S(14, 15, 'Doomed series'), repeatCount: 2 });
+    expect(res.status).toBe(409);
+    expect(res.body.message).toMatch(/Slot already booked/);
+
+    const mine = await agent.get('/api/bookings');
+    expect(mine.body.filter((b: { title: string }) => b.title === 'Doomed series')).toHaveLength(0);
+  });
+
+  it('rejects an out-of-range repeatCount', async () => {
+    const agent = await login('alice@example.com', 'alice12345');
+    const zero = await agent.post('/api/bookings').send({ ...S(8, 9, 'Zero'), repeatCount: 0 });
+    expect(zero.status).toBe(400);
+    const huge = await agent.post('/api/bookings').send({ ...S(8, 9, 'Huge'), repeatCount: 53 });
+    expect(huge.status).toBe(400);
+  });
+
+  it('repeats a single booking into a series via POST /:id/repeat', async () => {
+    const agent = await login('alice@example.com', 'alice12345');
+    const created = await agent.post('/api/bookings').send(S(11, 12, 'Repeat me'));
+    expect(created.status).toBe(201);
+
+    const res = await agent.post(`/api/bookings/${created.body.id}/repeat`).send({ count: 2 });
+    expect(res.status).toBe(201);
+    expect(res.body).toEqual({ created: 2 });
+
+    const mine = await agent.get('/api/bookings');
+    const rows = mine.body.filter((b: { title: string }) => b.title === 'Repeat me');
+    expect(rows).toHaveLength(3);
+  });
+
+  it('forbids repeating someone else\u2019s booking', async () => {
+    const alice = await login('alice@example.com', 'alice12345');
+    const bob = await login('bob@example.com', 'bob12345');
+    const created = await bob.post('/api/bookings').send(S(16, 17, "Bob's series"));
+    expect(created.status).toBe(201);
+
+    const res = await alice.post(`/api/bookings/${created.body.id}/repeat`).send({ count: 2 });
+    expect(res.status).toBe(403);
+  });
+
+  it('cancels a whole series via DELETE /series/:seriesId, owner-only', async () => {
+    const alice = await login('alice@example.com', 'alice12345');
+    const bob = await login('bob@example.com', 'bob12345');
+
+    const mine = await alice.post('/api/bookings').send({ ...S(9, 10, 'Alice series'), repeatCount: 2 });
+    const theirs = await bob.post('/api/bookings').send({ ...S(15, 16, 'Bob series'), repeatCount: 2 });
+    expect(mine.status).toBe(201);
+    expect(theirs.status).toBe(201);
+
+    // Alice cannot touch Bob's series.
+    const forbidden = await alice.delete(`/api/bookings/series/${theirs.body.series_id}`);
+    expect(forbidden.status).toBe(404);
+
+    const ok = await alice.delete(`/api/bookings/series/${mine.body.series_id}`);
+    expect(ok.status).toBe(204);
+
+    const list = await alice.get('/api/bookings');
+    expect(list.body.filter((b: { title: string }) => b.title === 'Alice series')).toHaveLength(0);
+  });
+
+  it('cancels a single occurrence without touching the rest of the series', async () => {
+    const agent = await login('alice@example.com', 'alice12345');
+    const created = await agent.post('/api/bookings').send({ ...S(17, 18, 'Occurrence'), repeatCount: 3 });
+    expect(created.status).toBe(201);
+
+    const del = await agent.delete(`/api/bookings/${created.body.id}`);
+    expect(del.status).toBe(204);
+
+    const mine = await agent.get('/api/bookings');
+    const left = mine.body.filter((b: { title: string }) => b.title === 'Occurrence');
+    expect(left).toHaveLength(2);
+    expect(new Set(left.map((b: { series_id: string }) => b.series_id)).size).toBe(1);
   });
 });
 
