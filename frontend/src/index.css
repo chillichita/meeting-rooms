@@ -51,7 +51,7 @@ body {
   font-family: 'IBM Plex Mono', ui-monospace, monospace;
 }
 
-/* temporary stub styling — replaced by real pages in MR-16..19 */
+/* temporary stub styling — replaced by real pages */
 .stub {
   max-width: 960px;
   margin: 0 auto;
@@ -165,7 +165,7 @@ body {
   border-radius: 18px;
   padding: 32px 30px 34px;
   box-shadow: 0 24px 60px rgba(0, 0, 0, 0.5);
-  animation: rise-in 300ms ease-out; /* A1 */
+  animation: rise-in 300ms ease-out;
 }
 .auth-brand {
   display: flex;
@@ -276,7 +276,7 @@ body {
   border-radius: var(--radius-sm);
   padding: 6px 10px;
   margin-top: 4px;
-  animation: fade-in 150ms ease-out; /* A3 */
+  animation: fade-in 150ms ease-out;
 }
 .hint {
   display: none;
@@ -1250,7 +1250,7 @@ body.dark {
   }
 }
 
-/* ---- WeekGrid (MR-17c, wireframe v2 Schedule) ---- */
+/* ---- WeekGrid (wireframe v2 Schedule) ---- */
 .room-page {
   background: var(--canvas);
   min-height: calc(100vh - 53px);
@@ -1383,10 +1383,10 @@ body.dark {
   background: rgba(0, 51, 102, 0.03); /* today's column tint */
 }
 .gcell:hover {
-  background: rgba(0, 51, 102, 0.06); /* open slot affordance (booking click lands in MR-19) */
+  background: rgba(0, 51, 102, 0.06); /* open slot affordance (booking click) */
 }
 
-/* ---- Bookings on the grid (MR-18, wireframe v2) ---- */
+/* ---- Bookings on the grid (wireframe v2) ---- */
 .slot {
   position: absolute;
   left: 2px;
@@ -1410,7 +1410,7 @@ body.dark {
   border: 1px dashed #d3d6e1;
 }
 
-/* S1 — amber now-line = the meridian (gridColumn inline: today's column;
+/* amber now-line = the meridian (gridColumn inline: today's column;
    gridRow inline: current slot; transform inline: continuous position).
    The dot at its start echoes the sun marker on the hero arc (schedule demo). */
 .now-line {
@@ -1467,7 +1467,7 @@ body.dark {
   box-shadow: 0 0 6px 1px rgba(224, 99, 26, 0.5);
 }
 
-/* ---- Booking modal + toast (MR-19, wireframe v2 Schedule) ---- */
+/* ---- Booking modal + toast (wireframe v2 Schedule) ---- */
 .modal-overlay {
   position: fixed;
   inset: 0;
@@ -1865,7 +1865,7 @@ body.dark {
   color: var(--muted);
 }
 
-/* ---- MR-21: responsive, no horizontal page scroll at 360px (spec) ---- */
+/* ---- Responsive: no horizontal page scroll at 360px ---- */
 @media (max-width: 560px) {
   .navbar {
     padding: 10px 14px;

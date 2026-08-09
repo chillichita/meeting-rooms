@@ -75,7 +75,7 @@ afterAll(() => {
   rmSync(dir, { recursive: true, force: true });
 });
 
-describe('createBooking — overlap rules (spec: touching, partial, full, adjacent days)', () => {
+describe('createBooking — overlap rules (touching, partial, full, adjacent days)', () => {
   it('creates the first booking', () => {
     const booking = createBooking(1, VALID) as { id: number; title: string };
     expect(booking.id).toBe(1);

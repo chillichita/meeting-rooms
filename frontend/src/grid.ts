@@ -16,7 +16,7 @@ export function toYmd(d: Date): string {
 
 // Office working hours (09:00–19:00 Kyiv) as local instants, computed once per
 // week from Monday. Slot boundaries are 30-min steps in UTC time.
-// ponytail: a DST transition inside the week shifts that day by an hour;
+// A DST transition inside the week shifts that day by an hour;
 // per-day boundaries would need variable row counts and break the 7×N grid.
 export function officeSlots(monday: Date): Date[] {
   const start = fromZonedTime(

@@ -52,13 +52,13 @@ export default function RoomPage() {
     return () => clearInterval(t);
   }, []);
 
-  // keep the strip behind the floating nav dark (same trick as HomePage)
+  // keep the strip behind the floating nav dark (same trick as HomePage).
   useEffect(() => {
     document.body.classList.add('dark');
     return () => document.body.classList.remove('dark');
   }, []);
 
-  // S5 — toast auto-dismiss
+  // toast auto-dismiss.
   useEffect(() => {
     if (!toast) return;
     const t = setTimeout(() => setToast(null), 4000);
@@ -125,7 +125,7 @@ export default function RoomPage() {
     }
   }
 
-  // S1 — amber now-line, continuous within the current 30-min slot (Google
+  // amber now-line, continuous within the current 30-min slot (Google
   // Calendar style): gridRow pins the slot, translateY places it inside it.
   const nowDayIdx = firstSlot ? Math.floor((now.getTime() - firstSlot.getTime()) / (24 * 60 * 60_000)) : -1;
   const nowDayStart = firstSlot ? firstSlot.getTime() + nowDayIdx * 24 * 60 * 60_000 : 0;

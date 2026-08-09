@@ -8,7 +8,7 @@ import { JWT_SECRET, FRONTEND_URL } from '../config.js';
 import { requireAuth, type AuthedRequest } from '../middleware/auth.js';
 import { authLimiter } from '../middleware/rateLimit.js';
 
-const TOKEN_TTL_MS = 24 * 60 * 60 * 1000; // verify links live for 24h
+const TOKEN_TTL_MS = 24 * 60 * 60 * 1000; // 24h
 
 const registerSchema = z.object({
   name: z.string({ error: 'Enter your name.' }).trim().min(1, 'Enter your name.'),

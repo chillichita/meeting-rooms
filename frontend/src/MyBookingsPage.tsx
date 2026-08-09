@@ -32,13 +32,13 @@ export default function MyBookingsPage() {
   }, []);
   useEffect(load, [load]);
 
-  // keep the strip behind the floating nav dark (same trick as HomePage/RoomPage)
+  // keep the strip behind the floating nav dark (same trick as HomePage/RoomPage).
   useEffect(() => {
     document.body.classList.add('dark');
     return () => document.body.classList.remove('dark');
   }, []);
 
-  // toast auto-dismiss
+  // toast auto-dismiss.
   useEffect(() => {
     if (!toast) return;
     const t = setTimeout(() => setToast(null), 4000);

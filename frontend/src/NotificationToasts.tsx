@@ -6,12 +6,12 @@ const POLL_MS = 30_000;
 
 type Queued = { id: number; text: string };
 
-// End-of-booking alerts (spec bonus): the backend evaluates "N minutes before
+// End-of-booking alerts: the backend evaluates "N minutes before
 // a booking's end, next slot in the room taken" on live data; this component
 // polls it while logged in and shows one alert at a time from a queue.
 // Alerts persist until the user dismisses them — dismissed is remembered for
 // the session, otherwise the 30s poll would re-raise the same alert forever.
-// ponytail: client polling instead of SSE/WebSocket push; fine for a dev app,
+// Client polling instead of SSE/WebSocket push; fine for a dev app,
 // switch to SSE when push latency matters.
 export default function NotificationToasts() {
   const { user } = useAuth();
@@ -37,7 +37,7 @@ export default function NotificationToasts() {
           });
         }
       } catch {
-        // server unreachable — the next poll retries
+        // server unreachable — the next poll retries.
       }
     };
     poll();

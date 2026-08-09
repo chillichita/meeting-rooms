@@ -6,7 +6,7 @@ import RoomPickerModal from './RoomPickerModal';
 
 const OFFICE_TZ = 'Europe/Kyiv';
 
-/** H1 — the logo mark is a live clock showing office time (Europe/Kyiv). */
+/** The logo mark is a live clock showing office time (Europe/Kyiv). */
 function LogoClock() {
   const [now, setNow] = useState(() => new Date());
 
@@ -16,7 +16,7 @@ function LogoClock() {
   }, []);
 
   const kyiv = toZonedTime(now, OFFICE_TZ);
-  // arc starts pointing at 12; rotate clockwise by office hours
+  // arc starts pointing at 12; rotate clockwise by office hours.
   const angle = ((kyiv.getHours() + kyiv.getMinutes() / 60) / 12) * 360;
   const label = `${String(kyiv.getHours()).padStart(2, '0')}:${String(kyiv.getMinutes()).padStart(2, '0')} Kyiv`;
 
@@ -43,7 +43,7 @@ export default function Navbar() {
   const { pathname } = useLocation();
   // Home covers "/" (the picker); Schedule covers "/rooms/:id" (the schedule).
   const scheduleActive = pathname.startsWith('/rooms');
-  // every screen is dark space now — the pill is always dark glass
+  // every screen is dark space now — the pill is always dark glass.
   const glass = true;
 
   const [now, setNow] = useState(() => new Date());
@@ -61,7 +61,7 @@ export default function Navbar() {
     setUserMenuOpen(false);
   }, [pathname]);
 
-  // Escape closes the user menu
+  // Escape closes the user menu.
   useEffect(() => {
     if (!userMenuOpen) return;
     const onKey = (e: KeyboardEvent) => {
@@ -72,7 +72,7 @@ export default function Navbar() {
   }, [userMenuOpen]);
 
   // click outside the user menu closes it (no backdrop element — the pill's
-  // backdrop-filter makes it a containing block for fixed descendants)
+  // backdrop-filter makes it a containing block for fixed descendants).
   useEffect(() => {
     if (!userMenuOpen) return;
     const onDown = (e: MouseEvent) => {

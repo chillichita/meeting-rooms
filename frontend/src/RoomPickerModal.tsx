@@ -10,7 +10,7 @@ export default function RoomPickerModal({ open, onClose }: { open: boolean; onCl
   const [rooms, setRooms] = useState<Room[]>([]);
   const [error, setError] = useState(false);
   const [loading, setLoading] = useState(false);
-  // Minimum capacity filter (null = any); backend: GET /api/rooms?capacity=N
+  // Minimum capacity filter (null = any); backend: GET /api/rooms?capacity=N.
   const [minCap, setMinCap] = useState<number | null>(null);
 
   const load = (cap: number | null = minCap) => {

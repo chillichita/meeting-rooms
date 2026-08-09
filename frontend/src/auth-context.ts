@@ -3,7 +3,7 @@ import type { User } from './api';
 
 export type AuthState = {
   user: User | null;
-  /** true while /api/auth/me is resolving on first load */
+  /** true while /api/auth/me is resolving on first load. */
   loading: boolean;
   refresh: () => Promise<void>;
   logout: () => Promise<void>;

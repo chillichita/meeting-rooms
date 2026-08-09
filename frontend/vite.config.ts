@@ -8,7 +8,7 @@ export default defineConfig({
     // into one declaration (keeping only the last, -webkit-) — Chromium ignores
     // the -webkit- prefix, so every glass element loses its blur in the built
     // app. Keep the CSS as-authored; both prefixes survive for every browser.
-    // ponytail: no css minification; switch to lightningcss (cssMinify) when
+    // No css minification; switch to lightningcss (cssMinify) when
     // the ~30KB raw CSS ever matters.
     cssMinify: false,
   },

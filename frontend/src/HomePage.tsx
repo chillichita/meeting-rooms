@@ -58,7 +58,7 @@ export default function HomePage() {
 
   useEffect(load, []);
 
-  // nav "Rooms" arrives with a flag → land on the rooms section instead of the hero
+  // nav "Rooms" arrives with a flag → land on the rooms section instead of the hero.
   useEffect(() => {
     const state = location.state as { scrollToRooms?: boolean } | null;
     if (state?.scrollToRooms) {
@@ -66,13 +66,13 @@ export default function HomePage() {
     }
   }, [location.state]);
 
-  // the hero canvas is dark full-bleed; keep the strip behind the floating nav dark too
+  // the hero canvas is dark full-bleed; keep the strip behind the floating nav dark too.
   useEffect(() => {
     document.body.classList.add('dark');
     return () => document.body.classList.remove('dark');
   }, []);
 
-  // sparkle field on the hero (Stardust port) — pauses off-screen, static under reduced motion
+  // sparkle field on the hero (Stardust port) — pauses off-screen, static under reduced motion.
   useEffect(() => {
     const dispose = sparkleRef.current
       ? mountSparkles(sparkleRef.current, { density: 2.2, minSize: 0.6, maxSize: 1.5, speed: 0.1 })
@@ -136,7 +136,7 @@ export default function HomePage() {
       if (domeGlowRef.current) domeGlowRef.current.style.opacity = String(0.7 + heroProgress * 0.3);
       if (heroSunRef.current) heroSunRef.current.style.opacity = String(0.8 + heroProgress * 0.2);
 
-      // hero text fades + shrinks as it leaves the viewport; rooms content fades + settles in
+      // hero text fades + shrinks as it leaves the viewport; rooms content fades + settles in.
       const heroInner = heroInnerRef.current;
       const roomsReveal = roomsRevealRef.current;
       if (heroInner && roomsReveal) {
@@ -195,7 +195,7 @@ export default function HomePage() {
 
   useEffect(() => () => window.clearTimeout(timerRef.current), []);
 
-  // keep the amber underline under the active room number
+  // keep the amber underline under the active room number.
   useEffect(() => {
     const fill = idxFillRef.current;
     const row = idxRowRef.current;
@@ -221,7 +221,7 @@ export default function HomePage() {
 
   const kyiv = toZonedTime(now, OFFICE_TZ);
   const hour = kyiv.getHours() + kyiv.getMinutes() / 60;
-  const open = hour >= OFFICE_OPEN && hour < OFFICE_CLOSE; // H2
+  const open = hour >= OFFICE_OPEN && hour < OFFICE_CLOSE;
 
   const selected = rooms[cur] ?? null;
 
@@ -269,7 +269,7 @@ export default function HomePage() {
         <div className="rooms-glow" ref={roomsGlowRef} />
         <div className="rooms-inner">
           {/* reveal choreography lives on the head + nav only — the card stays outside
-              the animated wrapper so its backdrop-filter still blurs the meridian behind it */}
+              the animated wrapper so its backdrop-filter still blurs the meridian behind it. */}
           <div className="rooms-reveal" ref={roomsRevealRef}>
             <div className="rooms-head">
               <span className="label">Rooms</span>
