@@ -43,8 +43,9 @@ export default function Navbar() {
   const { pathname } = useLocation();
   // Home covers "/" (the picker); Schedule covers "/rooms/:id" (the schedule).
   const scheduleActive = pathname.startsWith('/rooms');
-  // Home is the dark space canvas — the pill turns dark glass there, light elsewhere.
-  const glass = pathname === '/';
+  // Home and the schedule are dark space screens — the pill is dark glass there,
+  // light elsewhere (profile stays light until its dark port).
+  const glass = pathname === '/' || pathname.startsWith('/rooms');
 
   const [now, setNow] = useState(() => new Date());
   const [menuOpen, setMenuOpen] = useState(false);

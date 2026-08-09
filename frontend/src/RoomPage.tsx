@@ -52,6 +52,12 @@ export default function RoomPage() {
     return () => clearInterval(t);
   }, []);
 
+  // keep the strip behind the floating nav dark (same trick as HomePage)
+  useEffect(() => {
+    document.body.classList.add('dark');
+    return () => document.body.classList.remove('dark');
+  }, []);
+
   // S5 — toast auto-dismiss
   useEffect(() => {
     if (!toast) return;
@@ -243,7 +249,9 @@ export default function RoomPage() {
                       return (
                         <div
                           key={d.getTime()}
-                          className={`gcell${half ? ' half' : ''}${isToday(d) ? ' today-col' : ''}`}
+                          className={`gcell${half ? ' half' : ''}${
+                            isToday(d) ? ' today-col' : ''
+                          }`}
                           style={{ gridColumn: di + 2, gridRow: `${row} / ${row + 1}` }}
                           role="button"
                           aria-label={

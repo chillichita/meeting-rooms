@@ -1419,13 +1419,28 @@ body.dark {
 }
 
 /* S1 — amber now-line = the meridian (gridColumn inline: today's column;
-   gridRow inline: current slot; transform inline: continuous position) */
+   gridRow inline: current slot; transform inline: continuous position).
+   The dot at its start echoes the sun marker on the hero arc (schedule demo). */
 .now-line {
+  position: relative;
   height: 2px;
   background: var(--amber);
+  box-shadow: 0 0 8px 1px rgba(224, 99, 26, 0.55);
   align-self: start;
   z-index: 3;
   pointer-events: none;
+}
+.now-line::before {
+  content: '';
+  position: absolute;
+  left: -4px;
+  top: 50%;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--amber);
+  transform: translateY(-50%);
+  box-shadow: 0 0 10px 3px rgba(224, 99, 26, 0.6);
 }
 
 .legend {
@@ -1550,6 +1565,114 @@ body.dark {
   animation: rise-in 200ms ease-out;
 }
 
+/* ---- Dark schedule (v3 canon, meridian-schedule-demo) ----
+   The room page flips the shared tokens to the space palette, scoped to this
+   screen — same trick as .auth-stage — so the whole grid restyles without
+   touching the component. */
+.room-page {
+  --canvas: rgba(255, 255, 255, 0.04);
+  --surface: rgba(255, 255, 255, 0.045);
+  --ink: #ffffff;
+  --muted: #8b90a8;
+  --line: rgba(255, 255, 255, 0.13);
+  --navy: #2e6bb0; /* navy-light: mine-slots + accents read on the dark base */
+  --navy-hover: #4a86c9;
+  --navy-tint: rgba(255, 255, 255, 0.05);
+  --amber-tint: rgba(224, 99, 26, 0.16);
+  background: #050507;
+  color: #fff;
+  color-scheme: dark; /* native date picker + select options render dark */
+}
+.room-page .gtime.half,
+.room-page .gcell.half {
+  border-bottom-color: rgba(255, 255, 255, 0.05); /* was the light #f0f2f7 */
+}
+.room-page .gcell.today-col {
+  background: rgba(255, 255, 255, 0.03); /* today's column tint */
+}
+.room-page .ghead.today {
+  color: var(--amber); /* demo: the day's name is amber, with an amber tick under it */
+  position: relative;
+}
+.room-page .ghead.today::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  bottom: -1px;
+  width: 16px;
+  height: 2px;
+  background: var(--amber);
+  transform: translateX(-50%);
+}
+.room-page .gcell:hover {
+  background: rgba(255, 255, 255, 0.06); /* open slot affordance */
+}
+.room-page .slot.other {
+  background: rgba(255, 255, 255, 0.05);
+  color: #8b90a8;
+  border: 1px dashed rgba(255, 255, 255, 0.32);
+}
+.room-page .slot.mine {
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35);
+}
+.room-page .tz-label {
+  background: rgba(224, 99, 26, 0.16);
+  color: #ffb37a;
+}
+.room-page .btn-danger {
+  background: rgba(224, 99, 26, 0.16);
+  border-color: rgba(224, 99, 26, 0.4);
+  color: #ffb37a;
+}
+.room-page .btn-primary {
+  background: #fff; /* white primary everywhere (v3) */
+  border-color: #fff;
+  color: #003366;
+}
+.room-page .btn-primary:hover:not(:disabled) {
+  background: #e8edf4;
+  border-color: #e8edf4;
+}
+.room-page .modal {
+  background: rgba(20, 21, 28, 0.85);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.55);
+  color: #fff;
+}
+.room-page .modal-x {
+  color: #8b90a8;
+}
+.room-page .input {
+  color-scheme: dark; /* native select popup / date picker render dark */
+}
+.room-page .input option {
+  background: #14151c; /* readable option list on Windows/Chromium popups */
+  color: #fff;
+}
+.room-page .lock .mono {
+  color: #fff;
+  font-weight: 400;
+}
+.room-page .lock {
+  background: rgba(255, 255, 255, 0.03);
+}
+.room-page .toast {
+  background: rgba(20, 21, 28, 0.9);
+  border-color: rgba(255, 255, 255, 0.14);
+  color: #fff;
+}
+.room-page .sk {
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0.04) 25%,
+    rgba(255, 255, 255, 0.09) 50%,
+    rgba(255, 255, 255, 0.04) 75%
+  );
+  background-size: 200% 100%;
+}
+
 /* Fresh booking confirmation: amber pulse where it landed */
 .slot.highlight {
   animation: slot-pop 600ms ease-in-out 3;
@@ -1560,7 +1683,8 @@ body.dark {
     box-shadow: none;
   }
   50% {
-    box-shadow: 0 0 0 2px var(--amber), 0 0 14px rgba(224, 99, 26, 0.45);
+    /* light ring — reads on the dark grid */
+    box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.9), 0 0 14px rgba(255, 255, 255, 0.4);
   }
 }
 
