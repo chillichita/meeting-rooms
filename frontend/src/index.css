@@ -1307,13 +1307,13 @@ body.dark {
   overflow: hidden;
   font-size: 10.5px;
   position: relative;
-  background: var(--surface);
+  background: rgba(255, 255, 255, 0.03); /* subtle glass, no heavy blur (demo) */
   padding-bottom: 10px; /* headroom for the closing label hanging on the bottom line */
 }
 .ghead {
-  background: var(--canvas);
+  background: rgba(255, 255, 255, 0.02);
   border-bottom: 1px solid var(--line);
-  padding: 8px 6px;
+  padding: 10px 6px;
   text-align: center;
   font-weight: 600;
   color: var(--muted);
@@ -1425,15 +1425,24 @@ body.dark {
   position: static;
   display: inline-block;
   height: auto;
+  border-radius: 6px;
+  padding: 3px 10px;
+  font-size: 11px;
 }
 .legend-now {
   display: inline-flex;
   align-items: center;
   gap: 6px;
+  border-radius: 6px;
+  padding: 3px 10px;
+  font-size: 11px;
 }
 .now-line-sample {
-  width: 18px;
-  border-top: 2px solid var(--amber);
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--amber);
+  box-shadow: 0 0 6px 1px rgba(224, 99, 26, 0.5);
 }
 
 /* ---- Booking modal + toast (MR-19, wireframe v2 Schedule) ---- */
@@ -1562,7 +1571,7 @@ body.dark {
   border-bottom-color: rgba(255, 255, 255, 0.05); /* was the light #f0f2f7 */
 }
 .room-page .gcell.today-col {
-  background: rgba(255, 255, 255, 0.03); /* today's column tint */
+  background: rgba(224, 99, 26, 0.05); /* today's column — faint amber wash (demo) */
 }
 .room-page .ghead.today {
   color: var(--amber); /* demo: the day's name is amber, with an amber tick under it */
@@ -1717,8 +1726,8 @@ body.dark {
   margin-bottom: -1px;
 }
 .bk-tabs button.on {
-  color: var(--navy);
-  border-bottom-color: var(--navy);
+  color: #fff; /* white text + amber underline (demo) */
+  border-bottom-color: var(--amber);
 }
 .bk-list {
   display: flex;
@@ -1762,16 +1771,16 @@ body.dark {
   color: var(--muted);
 }
 .btn-ghost {
-  background: none;
-  border-color: var(--line);
-  color: var(--ink);
+  background: transparent;
+  border-color: rgba(255, 255, 255, 0.2);
+  color: #fff;
 }
 .bk-row .btn-ghost {
   margin-left: auto; /* cancel aligned to the row's right edge */
 }
 .btn-ghost:hover:not(:disabled) {
-  border-color: var(--navy);
-  color: var(--navy);
+  border-color: rgba(255, 255, 255, 0.4);
+  background: rgba(255, 255, 255, 0.05);
 }
 .show-more {
   margin: 16px auto 0;

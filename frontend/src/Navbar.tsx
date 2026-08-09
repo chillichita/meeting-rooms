@@ -149,7 +149,7 @@ export default function Navbar() {
               )}
             </div>
           ) : (
-            <Link to="/login" className="btn btn-primary btn-sm">
+            <Link to="/login" className="btn btn-ghost btn-sm">
               Log in
             </Link>
           )}
