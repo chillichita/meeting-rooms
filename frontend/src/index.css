@@ -693,6 +693,35 @@ body {
   color: var(--space-muted);
 }
 
+/* Capacity filter chips above the room list */
+.picker-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding: 4px 4px 12px;
+}
+.cap-chip {
+  border: 1px solid var(--space-line);
+  background: transparent;
+  color: var(--space-muted);
+  font: inherit;
+  font-size: 11px;
+  font-weight: 600;
+  padding: 5px 11px;
+  border-radius: 99px;
+  cursor: pointer;
+  transition: color 0.12s ease, border-color 0.12s ease, background 0.12s ease;
+}
+.cap-chip:hover {
+  color: #fff;
+  border-color: rgba(255, 255, 255, 0.4);
+}
+.cap-chip.on {
+  background: var(--amber);
+  border-color: var(--amber);
+  color: #fff;
+}
+
 /* ---- Home: stage / hero / rooms / footer (meridian-full-demo) ---- */
 body.dark {
   background: var(--space); /* keep the strip behind the floating nav dark on home */

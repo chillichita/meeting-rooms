@@ -3,16 +3,20 @@ import { useNavigate } from 'react-router-dom';
 import { api, type Room } from './api';
 
 /** Global room picker — the nav "Schedule" entry: pick a room → its schedule. */
+const CAPACITY_CHIPS = [4, 6, 8, 10, 12] as const; // room capacities from the seed
+
 export default function RoomPickerModal({ open, onClose }: { open: boolean; onClose: () => void }) {
   const navigate = useNavigate();
   const [rooms, setRooms] = useState<Room[]>([]);
   const [error, setError] = useState(false);
   const [loading, setLoading] = useState(false);
+  // Minimum capacity filter (null = any); backend: GET /api/rooms?capacity=N
+  const [minCap, setMinCap] = useState<number | null>(null);
 
-  const load = () => {
+  const load = (cap: number | null = minCap) => {
     setLoading(true);
     setError(false);
-    api<Room[]>('/api/rooms')
+    api<Room[]>(`/api/rooms${cap ? `?capacity=${cap}` : ''}`)
       .then((list) => setRooms(list))
       .catch(() => setError(true))
       .finally(() => setLoading(false));
@@ -53,17 +57,49 @@ export default function RoomPickerModal({ open, onClose }: { open: boolean; onCl
           </button>
         </div>
         <div className="picker-body">
+          <div className="picker-chips" role="group" aria-label="Filter by minimum capacity">
+            <button
+              type="button"
+              className={`cap-chip${minCap === null ? ' on' : ''}`}
+              onClick={() => {
+                setMinCap(null);
+                load(null);
+              }}
+            >
+              Any
+            </button>
+            {CAPACITY_CHIPS.map((cap) => (
+              <button
+                key={cap}
+                type="button"
+                className={`cap-chip${minCap === cap ? ' on' : ''}`}
+                onClick={() => {
+                  setMinCap(cap);
+                  load(cap);
+                }}
+              >
+                {cap}+
+              </button>
+            ))}
+          </div>
           {error ? (
             <div className="picker-state">
               <p>Couldn't load the rooms.</p>
-              <button type="button" className="btn btn-ghost-d" onClick={load}>
+              <button type="button" className="btn btn-ghost-d" onClick={() => load()}>
                 Try again
               </button>
             </div>
           ) : loading ? (
             <div className="picker-state">Loading…</div>
           ) : rooms.length === 0 ? (
-            <div className="picker-state">No rooms yet.</div>
+            <div className="picker-state">
+              <p>{minCap ? `No rooms for ${minCap}+ people.` : 'No rooms yet.'}</p>
+              {minCap && (
+                <button type="button" className="btn btn-ghost-d" onClick={() => { setMinCap(null); load(null); }}>
+                  Show all rooms
+                </button>
+              )}
+            </div>
           ) : (
             <div className="picker-list">
               {rooms.map((room, i) => (
