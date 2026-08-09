@@ -1807,6 +1807,22 @@ body.dark {
 .bk-row .btn-ghost {
   margin-left: auto; /* cancel aligned to the row's right edge */
 }
+.bk-row .bk-actions {
+  margin-left: auto;
+  display: flex;
+  gap: 8px;
+  flex-shrink: 0;
+}
+.bk-row .bk-actions .btn-ghost {
+  margin-left: 0;
+}
+.series-mark {
+  display: inline-block;
+  margin-left: 6px;
+  color: var(--amber);
+  font-size: 12px;
+  line-height: 1;
+}
 .btn-ghost:hover:not(:disabled) {
   border-color: rgba(255, 255, 255, 0.4);
   background: rgba(255, 255, 255, 0.05);

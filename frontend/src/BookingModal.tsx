@@ -81,6 +81,7 @@ export default function BookingModal({ room, initialStart, onClose, onCreated }:
   const [startStr, setStartStr] = useState(toTimeInput(initialStart));
   const [endStr, setEndStr] = useState(toTimeInput(new Date(initialStart.getTime() + 30 * 60_000)));
   const [title, setTitle] = useState('');
+  const [repeatCount, setRepeatCount] = useState(1); // 1 = single booking, 2-52 = weekly series
   const [errors, setErrors] = useState<{ title?: string; range?: string }>({});
   const [serverError, setServerError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
@@ -104,6 +105,7 @@ export default function BookingModal({ room, initialStart, onClose, onCreated }:
           title: title.trim(),
           startAt: start.toISOString(),
           endAt: end.toISOString(),
+          ...(repeatCount > 1 ? { repeatCount } : {}),
         }),
       });
       onCreated(created);
@@ -207,8 +209,23 @@ export default function BookingModal({ room, initialStart, onClose, onCreated }:
             </div>
             {errors.title && <div className="err">{errors.title}</div>}
 
+            <div className="field">
+              <label className="lbl" htmlFor="bk-repeat">
+                Repeat weekly
+              </label>
+              <input
+                id="bk-repeat"
+                className="input"
+                type="number"
+                min={1}
+                max={52}
+                value={repeatCount}
+                onChange={(e) => setRepeatCount(Number(e.target.value))}
+              />
+            </div>
+
             {serverError && <div className="form-error">{serverError}</div>}
-            <div className="modal-hint">30-min steps · 30m–4h · 09:00–19:00 office time.</div>
+            <div className="modal-hint">30-min steps · 30m–4h · 09:00–19:00 office time · repeat 1 = once.</div>
           </div>
 
           <div className="modal-foot">

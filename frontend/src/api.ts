@@ -9,6 +9,7 @@ export type Booking = {
   end_at: string; // UTC ISO
   user_id: number;
   user_name: string;
+  series_id: string | null; // set when the booking is part of a weekly series
 };
 
 /** Booking as listed on /api/bookings (own bookings, joined with the room). */

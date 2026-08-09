@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { format } from 'date-fns';
 import { Navigate, useNavigate } from 'react-router-dom';
-import { api, type MyBooking } from './api';
+import { api, ApiError, type MyBooking } from './api';
 import { toYmd } from './grid';
 import { useAuth } from './auth-context';
 
@@ -15,6 +15,9 @@ export default function MyBookingsPage() {
   const [tab, setTab] = useState<'upcoming' | 'past'>('upcoming');
   const [pastShown, setPastShown] = useState(PAGE);
   const [confirm, setConfirm] = useState<MyBooking | null>(null);
+  const [repeatFor, setRepeatFor] = useState<MyBooking | null>(null);
+  const [repeatCount, setRepeatCount] = useState(4);
+  const [repeatBusy, setRepeatBusy] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
 
   const load = useCallback(() => {
@@ -63,7 +66,48 @@ export default function MyBookingsPage() {
     }
   };
 
-  const rows = (list: MyBooking[], withCancel: boolean) =>
+  // Repeat/Extend: turn a single booking into a weekly series, or add
+  // occurrences to an existing one. count = new occurrences to create.
+  const repeat = async () => {
+    if (!repeatFor) return;
+    setRepeatBusy(true);
+    try {
+      const res = await api<{ created: number }>(`/api/bookings/${repeatFor.id}/repeat`, {
+        method: 'POST',
+        body: JSON.stringify({ count: repeatCount }),
+      });
+      setToast(
+        repeatFor.series_id
+          ? `Series extended by ${res.created} more week${res.created === 1 ? '' : 's'}.`
+          : `Now repeats weekly — ${res.created + 1} occurrences.`,
+      );
+      setRepeatFor(null);
+      load();
+    } catch (err) {
+      if (err instanceof ApiError) setToast(err.message);
+      else setToast("Can't reach the server.");
+    } finally {
+      setRepeatBusy(false);
+    }
+  };
+
+  const cancelSeries = async () => {
+    if (!repeatFor?.series_id) return;
+    setRepeatBusy(true);
+    try {
+      await api(`/api/bookings/series/${repeatFor.series_id}`, { method: 'DELETE' });
+      setToast('Series cancelled.');
+      setRepeatFor(null);
+      load();
+    } catch {
+      setToast("Couldn't cancel the series.");
+      setRepeatFor(null);
+    } finally {
+      setRepeatBusy(false);
+    }
+  };
+
+  const rows = (list: MyBooking[], withActions: boolean) =>
     list.map((b) => (
       <div
         key={b.id}
@@ -78,22 +122,39 @@ export default function MyBookingsPage() {
           </span>
         </div>
         <div className="what">
-          <b>{b.title}</b>
+          <b>
+            {b.title}
+            {b.series_id && <span className="series-mark" title="Repeats weekly">↻</span>}
+          </b>
           <span>
             {b.room_name} · Floor {b.floor}
+            {b.series_id && ' · weekly'}
           </span>
         </div>
-        {withCancel && (
-          <button
-            type="button"
-            className="btn btn-ghost"
-            onClick={(e) => {
-              e.stopPropagation();
-              setConfirm(b);
-            }}
-          >
-            Cancel
-          </button>
+        {withActions && (
+          <div className="bk-actions">
+            <button
+              type="button"
+              className="btn btn-ghost"
+              onClick={(e) => {
+                e.stopPropagation();
+                setRepeatCount(4);
+                setRepeatFor(b);
+              }}
+            >
+              Repeat
+            </button>
+            <button
+              type="button"
+              className="btn btn-ghost"
+              onClick={(e) => {
+                e.stopPropagation();
+                setConfirm(b);
+              }}
+            >
+              Cancel
+            </button>
+          </div>
         )}
       </div>
     ));
@@ -172,6 +233,7 @@ export default function MyBookingsPage() {
                 {format(new Date(confirm.start_at), 'EEE, MMM dd')},{' '}
                 {format(new Date(confirm.start_at), 'HH:mm')}–
                 {format(new Date(confirm.end_at), 'HH:mm')}. This can't be undone.
+                {confirm.series_id && ' This cancels this occurrence only — the rest of the series stays.'}
               </p>
             </div>
             <div className="modal-foot">
@@ -180,6 +242,65 @@ export default function MyBookingsPage() {
               </button>
               <button type="button" className="btn btn-danger" onClick={cancel}>
                 Cancel booking
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {repeatFor && (
+        <div className="modal-overlay" onClick={() => setRepeatFor(null)}>
+          <div className="modal" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-head">
+              <b>{repeatFor.series_id ? 'Extend series' : 'Repeat weekly'}</b>
+            </div>
+            <div className="modal-body">
+              <p className="confirm-text">
+                {repeatFor.series_id ? (
+                  <>
+                    &ldquo;{repeatFor.title}&rdquo; repeats every week. Add more occurrences to
+                    this series?
+                  </>
+                ) : (
+                  <>
+                    &ldquo;{repeatFor.title}&rdquo; on{' '}
+                    {format(new Date(repeatFor.start_at), 'EEE, MMM dd')} will repeat every week,
+                    same room and time.
+                  </>
+                )}
+              </p>
+              <div className="field" style={{ marginTop: 14 }}>
+                <label className="lbl" htmlFor="repeat-count">
+                  {repeatFor.series_id ? 'Add occurrences' : 'Weekly occurrences'}
+                </label>
+                <input
+                  id="repeat-count"
+                  className="input"
+                  type="number"
+                  min={1}
+                  max={52}
+                  value={repeatCount}
+                  onChange={(e) => setRepeatCount(Number(e.target.value))}
+                />
+                <div className="modal-hint">1–52 weeks</div>
+              </div>
+            </div>
+            <div className="modal-foot">
+              {repeatFor.series_id && (
+                <button
+                  type="button"
+                  className="btn btn-danger"
+                  disabled={repeatBusy}
+                  onClick={cancelSeries}
+                >
+                  Cancel entire series
+                </button>
+              )}
+              <button type="button" className="btn" onClick={() => setRepeatFor(null)}>
+                Keep as is
+              </button>
+              <button type="button" className="btn btn-primary" disabled={repeatBusy} onClick={repeat}>
+                {repeatFor.series_id ? 'Extend' : 'Repeat'}
               </button>
             </div>
           </div>
