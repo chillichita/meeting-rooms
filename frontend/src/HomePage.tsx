@@ -177,12 +177,18 @@ export default function HomePage() {
     };
 
     window.addEventListener('scroll', onScroll, { passive: true });
-    window.addEventListener('resize', init);
-    if (document.fonts && document.fonts.ready) document.fonts.ready.then(init);
+    // rebuild the meridian geometry on any stage size change — covers data
+    // loading (placeholder → card), error state, fonts, images and window
+    // resizes alike, where the old resize+fonts.ready pair missed content growth
+    const ro = new ResizeObserver(() => {
+      buildPath();
+      update();
+    });
+    if (stageRef.current) ro.observe(stageRef.current);
     init();
     return () => {
       window.removeEventListener('scroll', onScroll);
-      window.removeEventListener('resize', init);
+      ro.disconnect();
     };
   }, []);
 
