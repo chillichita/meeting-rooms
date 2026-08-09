@@ -44,6 +44,7 @@ export default function HomePage() {
   const idxRowRef = useRef<HTMLDivElement>(null);
   const idxFillRef = useRef<HTMLDivElement>(null);
   const timerRef = useRef<number | undefined>(undefined);
+  const touchRef = useRef<{ x: number; y: number } | null>(null);
 
   const load = () => {
     setError(false);
@@ -294,7 +295,21 @@ export default function HomePage() {
 
           {selected && !error && (
             <>
-              <div className="card">
+              <div
+                className="card"
+                onTouchStart={(e) => {
+                  const t = e.touches[0];
+                  touchRef.current = { x: t.clientX, y: t.clientY };
+                }}
+                onTouchEnd={(e) => {
+                  const start = touchRef.current;
+                  touchRef.current = null;
+                  if (!start) return;
+                  const dx = e.changedTouches[0].clientX - start.x;
+                  const dy = e.changedTouches[0].clientY - start.y;
+                  if (Math.abs(dx) > 40 && Math.abs(dx) > Math.abs(dy)) go(cur + (dx < 0 ? 1 : -1));
+                }}
+              >
                 {PHOTOS[selected.name] && (
                   <div className={`card-photo${switching ? ' switching' : ''}`}>
                     <img
