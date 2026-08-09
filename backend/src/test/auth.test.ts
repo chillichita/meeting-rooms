@@ -86,6 +86,48 @@ describe('POST /api/auth/login', () => {
   });
 });
 
+describe('GET /api/auth/verify', () => {
+  it('creates a verification token on register', async () => {
+    const row = db
+      .prepare('SELECT token FROM verification_tokens vt JOIN users u ON u.id = vt.user_id WHERE u.email = ?')
+      .get(USER.email) as { token: string } | undefined;
+    expect(row).toBeDefined();
+    const user = db.prepare('SELECT email_verified FROM users WHERE email = ?').get(USER.email) as {
+      email_verified: number;
+    };
+    expect(user.email_verified).toBe(0);
+  });
+
+  it('rejects a missing token', async () => {
+    const res = await request(app).get('/api/auth/verify');
+    expect(res.status).toBe(400);
+  });
+
+  it('rejects an unknown token', async () => {
+    const res = await request(app).get('/api/auth/verify?token=no-such-token');
+    expect(res.status).toBe(400);
+    expect(res.body.message).toMatch(/Invalid or expired/);
+  });
+
+  it('verifies the user, redirects to the SPA, and burns the token', async () => {
+    const row = db
+      .prepare('SELECT token FROM verification_tokens vt JOIN users u ON u.id = vt.user_id WHERE u.email = ?')
+      .get(USER.email) as { token: string };
+    const res = await request(app).get(`/api/auth/verify?token=${row.token}`);
+    expect(res.status).toBe(302);
+    expect(res.headers.location).toBe('http://localhost:3000/login?verified=1');
+
+    const user = db.prepare('SELECT email_verified FROM users WHERE email = ?').get(USER.email) as {
+      email_verified: number;
+    };
+    expect(user.email_verified).toBe(1);
+
+    // One-time use: a replayed link fails.
+    const again = await request(app).get(`/api/auth/verify?token=${row.token}`);
+    expect(again.status).toBe(400);
+  });
+});
+
 describe('session lifecycle', () => {
   it('requires authentication for /me', async () => {
     const res = await request(app).get('/api/auth/me');

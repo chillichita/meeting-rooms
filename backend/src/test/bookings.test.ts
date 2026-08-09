@@ -37,10 +37,10 @@ beforeAll(async () => {
 
   db.prepare("INSERT INTO rooms (name, floor, capacity) VALUES ('Mercury', 2, 6)").run();
   db.prepare(
-    'INSERT INTO users (name, email, password_hash) VALUES (?, ?, ?)'
+    'INSERT INTO users (name, email, password_hash, email_verified) VALUES (?, ?, ?, 1)'
   ).run('Alice', 'alice@example.com', bcrypt.hashSync('alice12345', 10));
   db.prepare(
-    'INSERT INTO users (name, email, password_hash) VALUES (?, ?, ?)'
+    'INSERT INTO users (name, email, password_hash, email_verified) VALUES (?, ?, ?, 1)'
   ).run('Bob', 'bob@example.com', bcrypt.hashSync('bob12345', 10));
 });
 
@@ -111,6 +111,34 @@ describe('POST /api/bookings', () => {
       .prepare('SELECT COUNT(*) AS n FROM bookings WHERE room_id = 1 AND start_at = ?')
       .get(slot(16)) as { n: number };
     expect(count.n).toBe(1);
+  });
+});
+
+describe('email verification gate', () => {
+  it('blocks booking before verification, allows it after', async () => {
+    const res = await request(app).post('/api/auth/register').send({
+      name: 'Dave',
+      email: 'dave@example.com',
+      password: 'dave12345',
+    });
+    expect(res.status).toBe(201);
+
+    const agent = await login('dave@example.com', 'dave12345');
+    const blocked = await agent.post('/api/bookings').send(BODY(9, 10));
+    expect(blocked.status).toBe(403);
+    expect(blocked.body.message).toMatch(/verify your email/);
+
+    // Dev-mode: the token lives in the DB (the "server log" equivalent).
+    const row = db
+      .prepare('SELECT token FROM verification_tokens vt JOIN users u ON u.id = vt.user_id WHERE u.email = ?')
+      .get('dave@example.com') as { token: string } | undefined;
+    expect(row).toBeDefined();
+
+    const verify = await request(app).get(`/api/auth/verify?token=${row!.token}`);
+    expect(verify.status).toBe(302);
+
+    const allowed = await agent.post('/api/bookings').send(BODY(9, 10));
+    expect(allowed.status).toBe(201);
   });
 });
 

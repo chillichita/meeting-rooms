@@ -41,6 +41,7 @@ copy `backend/.env.example` to `backend/.env` and adjust:
 | `PORT` | `8080` | API port |
 | `JWT_SECRET` | `change-me` | Secret for signing session cookies |
 | `DB_PATH` | `./data/meeting-rooms.db` | SQLite database file |
+| `FRONTEND_URL` | `http://localhost:3000` | Origin the email-verify link redirects to |
 
 ## Seeds
 

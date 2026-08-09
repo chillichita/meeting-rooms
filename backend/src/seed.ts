@@ -31,8 +31,11 @@ const insertRoom = db.prepare(
 for (const r of ROOMS) insertRoom.run(r.name, r.floor, r.capacity);
 
 const insertUser = db.prepare(
-  'INSERT OR IGNORE INTO users (name, email, password_hash) VALUES (?, ?, ?)'
+  'INSERT OR IGNORE INTO users (name, email, password_hash, email_verified) VALUES (?, ?, ?, 1)'
 );
+// Test users start verified so the README's demo flow (log in, book) works
+// out of the box — the verify flow itself is exercised by newly registered
+// users, in tests and manually.
 for (const u of USERS) {
   insertUser.run(u.name, u.email.toLowerCase(), bcrypt.hashSync(u.password, 10));
 }

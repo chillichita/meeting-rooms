@@ -42,7 +42,12 @@ beforeAll(async () => {
   BookingErrorType = svc.BookingError;
 
   db.prepare("INSERT INTO rooms (name, floor, capacity) VALUES ('Mercury', 2, 6)").run();
-  db.prepare("INSERT INTO users (name, email, password_hash) VALUES ('Tester', 't@example.com', 'x')").run();
+  db.prepare(
+    "INSERT INTO users (name, email, password_hash, email_verified) VALUES ('Tester', 't@example.com', 'x', 1)"
+  ).run();
+  db.prepare(
+    "INSERT INTO users (name, email, password_hash, email_verified) VALUES ('Fresh', 'fresh@example.com', 'x', 0)"
+  ).run();
 });
 
 afterAll(() => {
@@ -90,6 +95,10 @@ describe('createBooking — overlap rules (spec: touching, partial, full, adjace
 });
 
 describe('createBooking — validation passthrough', () => {
+  it('rejects an unverified user with 403', () => {
+    expect(() => createBooking(2, VALID)).toThrowError(/verify your email/);
+  });
+
   it('rejects a booking outside office hours', () => {
     expect(() => createBooking(1, { ...VALID, startAt: slot(19), endAt: slot(20) })).toThrowError(
       /after office hours/

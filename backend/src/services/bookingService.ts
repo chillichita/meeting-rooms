@@ -22,6 +22,7 @@ export interface NewBooking {
 }
 
 const roomExists = db.prepare('SELECT 1 FROM rooms WHERE id = ?');
+const userVerified = db.prepare('SELECT email_verified FROM users WHERE id = ?');
 const selectBooking = db.prepare(
   'SELECT id, user_id, room_id, title, start_at, end_at FROM bookings WHERE id = ?'
 );
@@ -41,6 +42,13 @@ const insertBooking = db.prepare(`
 `);
 
 export function createBooking(userId: number, input: NewBooking) {
+  // Spec: booking is not allowed before email verification.
+  const verified = (userVerified.get(userId) as { email_verified: number } | undefined)
+    ?.email_verified;
+  if (!verified) {
+    throw new BookingError('Please verify your email before booking', 403);
+  }
+
   const title = input.title.trim();
   if (title.length < 1 || title.length > 100) {
     throw new BookingError('Title must be 1-100 characters');
