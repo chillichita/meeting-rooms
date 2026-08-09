@@ -15,6 +15,7 @@ export default function MyBookingsPage() {
   const [tab, setTab] = useState<'upcoming' | 'past'>('upcoming');
   const [pastShown, setPastShown] = useState(PAGE);
   const [confirm, setConfirm] = useState<MyBooking | null>(null);
+  const [cancelScope, setCancelScope] = useState<'one' | 'series'>('one');
   const [repeatFor, setRepeatFor] = useState<MyBooking | null>(null);
   const [repeatCount, setRepeatCount] = useState(4);
   const [repeatBusy, setRepeatBusy] = useState(false);
@@ -57,8 +58,13 @@ export default function MyBookingsPage() {
   const cancel = async () => {
     if (!confirm) return;
     try {
-      await api(`/api/bookings/${confirm.id}`, { method: 'DELETE' });
-      setToast('Booking cancelled.');
+      if (confirm.series_id && cancelScope === 'series') {
+        await api(`/api/bookings/series/${confirm.series_id}`, { method: 'DELETE' });
+        setToast('Series cancelled.');
+      } else {
+        await api(`/api/bookings/${confirm.id}`, { method: 'DELETE' });
+        setToast('Booking cancelled.');
+      }
       setConfirm(null);
       load();
     } catch {
@@ -86,22 +92,6 @@ export default function MyBookingsPage() {
     } catch (err) {
       if (err instanceof ApiError) setToast(err.message);
       else setToast("Can't reach the server.");
-    } finally {
-      setRepeatBusy(false);
-    }
-  };
-
-  const cancelSeries = async () => {
-    if (!repeatFor?.series_id) return;
-    setRepeatBusy(true);
-    try {
-      await api(`/api/bookings/series/${repeatFor.series_id}`, { method: 'DELETE' });
-      setToast('Series cancelled.');
-      setRepeatFor(null);
-      load();
-    } catch {
-      setToast("Couldn't cancel the series.");
-      setRepeatFor(null);
     } finally {
       setRepeatBusy(false);
     }
@@ -149,6 +139,7 @@ export default function MyBookingsPage() {
               className="btn btn-ghost"
               onClick={(e) => {
                 e.stopPropagation();
+                setCancelScope('one');
                 setConfirm(b);
               }}
             >
@@ -233,8 +224,29 @@ export default function MyBookingsPage() {
                 {format(new Date(confirm.start_at), 'EEE, MMM dd')},{' '}
                 {format(new Date(confirm.start_at), 'HH:mm')}–
                 {format(new Date(confirm.end_at), 'HH:mm')}. This can't be undone.
-                {confirm.series_id && ' This cancels this occurrence only — the rest of the series stays.'}
               </p>
+              {confirm.series_id && (
+                <div className="scope-row">
+                  <label className="scope-opt">
+                    <input
+                      type="radio"
+                      name="cancel-scope"
+                      checked={cancelScope === 'one'}
+                      onChange={() => setCancelScope('one')}
+                    />
+                    This occurrence only — the rest of the series stays
+                  </label>
+                  <label className="scope-opt">
+                    <input
+                      type="radio"
+                      name="cancel-scope"
+                      checked={cancelScope === 'series'}
+                      onChange={() => setCancelScope('series')}
+                    />
+                    Entire series
+                  </label>
+                </div>
+              )}
             </div>
             <div className="modal-foot">
               <button type="button" className="btn" onClick={() => setConfirm(null)}>
@@ -286,16 +298,6 @@ export default function MyBookingsPage() {
               </div>
             </div>
             <div className="modal-foot">
-              {repeatFor.series_id && (
-                <button
-                  type="button"
-                  className="btn btn-danger"
-                  disabled={repeatBusy}
-                  onClick={cancelSeries}
-                >
-                  Cancel entire series
-                </button>
-              )}
               <button type="button" className="btn" onClick={() => setRepeatFor(null)}>
                 Keep as is
               </button>
