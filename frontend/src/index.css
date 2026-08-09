@@ -1874,6 +1874,18 @@ body.dark {
   .navbar .clock {
     display: none; /* room for logo + avatar + burger on the pill */
   }
+  .bk-row {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
+  }
+  .bk-row .when {
+    width: auto;
+  }
+  .bk-row .bk-actions {
+    margin-left: 0;
+    justify-content: flex-end; /* buttons stay right-aligned below the info */
+  }
   .grid-wrap {
     padding: 12px 14px 18px;
     overflow-x: auto; /* the week grid scrolls inside its card, page stays put */
