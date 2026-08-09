@@ -1,0 +1,17 @@
+services:
+  app:
+    build: .
+    ports:
+      - "3000:3000"
+    environment:
+      NODE_ENV: production # secure session cookies, prod-ish behaviour
+      PORT: "3000"
+      DB_PATH: /data/meeting-rooms.db
+      JWT_SECRET: ${JWT_SECRET:-dev-secret-change-me}
+      FRONTEND_URL: http://localhost:3000
+      NOTIFY_BEFORE_MINUTES: "10"
+    volumes:
+      - mr-data:/data
+
+volumes:
+  mr-data:

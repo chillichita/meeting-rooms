@@ -1,0 +1,6 @@
+# Keep Docker/Compose files LF even on Windows checkouts (core.autocrlf).
+# Insurance for a future entrypoint.sh — today's CMD is a JSON array in the
+# Dockerfile, no script is executed, so CRLF cannot break anything yet.
+* text=auto
+Dockerfile text eol=lf
+docker-compose.yml text eol=lf

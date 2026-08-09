@@ -125,7 +125,15 @@ export function createBooking(userId: number, input: NewBooking) {
  */
 export function repeatBooking(userId: number, bookingId: number, count: number): number {
   const booking = selectBooking.get(bookingId) as
-    | { id: number; user_id: number; title: string; start_at: string; end_at: string; series_id: string | null }
+    | {
+        id: number;
+        user_id: number;
+        room_id: number;
+        title: string;
+        start_at: string;
+        end_at: string;
+        series_id: string | null;
+      }
     | undefined;
   if (!booking) {
     throw new BookingError('Booking not found', 404);
