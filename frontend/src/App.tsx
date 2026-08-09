@@ -5,11 +5,13 @@ import HomePage from './HomePage';
 import Navbar from './Navbar';
 import RoomPage from './RoomPage';
 import MyBookingsPage from './MyBookingsPage';
+import NotificationToasts from './NotificationToasts';
 
 function Layout() {
   return (
     <>
       <Navbar />
+      <NotificationToasts />
       <Outlet />
     </>
   );

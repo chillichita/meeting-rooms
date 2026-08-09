@@ -18,6 +18,14 @@ export type MyBooking = Booking & {
   floor: number;
 };
 
+/** Item from GET /api/bookings/notifications (due end-of-booking alerts). */
+export type NotificationItem = {
+  booking_id: number;
+  room_name: string;
+  ends_at: string;
+  ends_in_minutes: number;
+};
+
 export class ApiError extends Error {
   status: number;
   field?: string;
