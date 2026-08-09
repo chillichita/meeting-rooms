@@ -156,8 +156,9 @@ export default function Navbar() {
           <button
             type="button"
             className="burger"
-            aria-label="Open menu"
-            onClick={() => setMenuOpen(true)}
+            aria-label={menuOpen ? 'Close menu' : 'Open menu'}
+            aria-expanded={menuOpen}
+            onClick={() => setMenuOpen((o) => !o)}
           >
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <path d="M3 6h18M3 12h18M3 18h18" />
@@ -166,10 +167,7 @@ export default function Navbar() {
         </div>
       </header>
 
-      <div className={`mobile-menu${menuOpen ? ' open' : ''}`}>
-        <button type="button" className="close" aria-label="Close menu" onClick={() => setMenuOpen(false)}>
-          ✕
-        </button>
+      <div className={`mobile-menu${menuOpen ? ' open' : ''}`} onClick={() => setMenuOpen(false)}>
         <Link
           to="/"
           onClick={(e) => {
