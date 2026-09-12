@@ -110,3 +110,7 @@ and gets a 409. The same statement is the race protection.
 - **Mobile-friendly schedule** *(partial)* — a collapsible menu, touch swipe
   between room cards on the home page and stacked booking rows on narrow
   screens; the weekly grid itself stays desktop-oriented.
+
+## License
+
+MIT — see [LICENSE](LICENSE).
