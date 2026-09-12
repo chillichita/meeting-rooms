@@ -37,13 +37,16 @@ UA-Skills event2 contest entry.
 
 ### Why I Built This
 
-Offices book meeting rooms the old way — Slack ping-pong, a paper schedule on
-the door, "who took 10:00 on Tuesday?". Nobody owns a room list, and nobody
-sees the full picture until they're standing in front of a locked door.
+This is my entry for the **UA-Skills event2** junior contest. The brief: an
+office meeting-room booking app. An employee opens a room's weekly schedule,
+sees occupied slots, and books free time; own bookings can be cancelled,
+other people's cannot.
 
-This is my entry for the **UA-Skills event2** junior contest: a small app that
-replaces the paper schedule with a weekly grid everyone can read, and lets
-anyone book a free slot in seconds.
+The interesting part wasn't the CRUD — it was the details the spec packed
+into a small app: bookings that must never overlap, even when two people
+submit the same slot at the same moment; a schedule that stays correct for
+users in different timezones; and a grid that reads like a calendar, not a
+form.
 
 ### The Solution
 
